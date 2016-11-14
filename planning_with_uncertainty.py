@@ -37,9 +37,10 @@ from sets  import Set
 _DEBUG         = False
 _DEBUG_END     = True
 _ACTIONS       = ['u','d','l','r']
-_ACTION_COST   = {'u': 1, 'd': 1, 'l': 1, 'r': 1}
 _ACTIONS_2     = ['u','d','l','r','ne','nw','sw','se']
-_ACTION_2_COST = {'u': 1, 'd': 1, 'l': 1, 'r': 1, 'ne': 1.5, 'nw': 1.5, 'sw': 1.5, 'se': 1.5}
+_PERF_PROBS    = [1.0, 0.0, 0.0] 
+_PROBS         = [0.8, 0.0, 0.1]
+_PROBS_2       = [0.7, 0.1, 0.05]
 _X = 1
 _Y = 0
 _GOAL_COLOR    = 0.75
@@ -106,52 +107,119 @@ class GridMap:
         return (s[_X] == self.goal[_X] and
                 s[_Y] == self.goal[_Y])
 
-    def transition(self, s, a,  ):
+    def transition(self, s, a, action_set, sim):
         '''
         Transition function for the current grid map.
 
         s - tuple describing the state as (row, col) position on the grid.
         a - the action to be performed from state s
+        action_set - 1 for action set 1 or 2 for action set 2. Changes the probabilities returned
+        sim - whether or not to simulate the action. If true, returns a state. Otherwise,
+              returns a list of 2-tuples with state and probability
 
         returns - s_prime, the state transitioned to by taking action a in state s.
         If the action is not valid (e.g. moves off the grid or into an obstacle)
         returns the current state.
         '''
-        new_pos = list(s[:])
         # Ensure action stays on the board
+        poss = []
+        prob_set = []
+        
+        if action_set == 1:
+            prob_set = PROBS
+        else:
+            prob_set = PROBS_2
+
         if a == 'u':
-            if s[_Y] > 0:
-                new_pos[_Y] -= 1
+            #if s[_Y] > 0:
+                #new_pos[_Y] -= 1
+            poss.append(((s[_X], s[_Y]-1), prob_set[0]))   #up
+            poss.append(((s[_X]-1, s[_Y]-1), prob_set[1])) #up-left
+            poss.append(((s[_X]+1, s[_Y]-1), prob_set[1])) #up-right
+            poss.append(((s[_X]-1, s[_Y]), prob_set[2]))   #left
+            poss.append(((s[_X]+1, s[_Y]), prob_set[2]))   #right
         elif a == 'd':
-            if s[_Y] < self.rows - 1:
-                new_pos[_Y] += 1
+            # if s[_Y] < self.rows - 1:
+            #     new_pos[_Y] += 1
+            poss.append(((s[_X], s[_Y]+1), prob_set[0]))   #down
+            poss.append(((s[_X]-1, s[_Y]+1), prob_set[1])) #down-left
+            poss.append(((s[_X]+1, s[_Y]+1), prob_set[1])) #down-right
+            poss.append(((s[_X]-1, s[_Y]), prob_set[2]))   #left
+            poss.append(((s[_X]+1, s[_Y]), prob_set[2]))   #right
         elif a == 'l':
-            if s[_X] > 0:
-                new_pos[_X] -= 1
+            # if s[_X] > 0:
+            #     new_pos[_X] -= 1
+            poss.append(((s[_X]-1, s[_Y]), prob_set[0]))   #left
+            poss.append(((s[_X]-1, s[_Y]-1), prob_set[1])) #up-left
+            poss.append(((s[_X]-1, s[_Y]+1), prob_set[1])) #down-left
+            poss.append(((s[_X], s[_Y]-1), prob_set[2]))   #up
+            poss.append(((s[_X], s[_Y]+1), prob_set[2]))   #down
         elif a == 'r':
-            if s[_X] < self.cols - 1:
-                new_pos[_X] += 1
+            # if s[_X] < self.cols - 1:
+            #     new_pos[_X] += 1
+            poss.append(((s[_X]+1, s[_Y]), prob_set[0]))   #right
+            poss.append(((s[_X]+1, s[_Y]-1), prob_set[1])) #up-right
+            poss.append(((s[_X]+1, s[_Y]+1), prob_set[1])) #down-right
+            poss.append(((s[_X], s[_Y]+1), prob_set[2]))   #down
+            poss.append(((s[_X], s[_Y]-1), prob_set[2]))   #up
         elif a == 'ne':
-            if s[_X] < self.cols - 1 and s[_Y] > 0:
-                new_pos[_X] += 1
-                new_pos[_Y] -= 1
+            # if s[_X] < self.cols - 1 and s[_Y] > 0:
+            #     new_pos[_X] += 1
+            #     new_pos[_Y] -= 1
+            poss.append(((s[_X]+1, s[_Y]-1), prob_set[0])) #up-right
+            poss.append(((s[_X], s[_Y]-1), prob_set[1]))   #up
+            poss.append(((s[_X]+1, s[_Y]), prob_set[1]))   #left
+            poss.append(((s[_X]-1, s[_Y]-1), prob_set[2])) #up-left
+            poss.append(((s[_X]+1, s[_Y]+1), prob_set[2])) #bottom-right
         elif a == 'nw':
-            if s[_X] > 0 and s[_Y] > 0:
-                new_pos[_X] -= 1
-                new_pos[_Y] -= 1
+            # if s[_X] > 0 and s[_Y] > 0:
+            #     new_pos[_X] -= 1
+            #     new_pos[_Y] -= 1
+            poss.append(((s[_X]-1, s[_Y]-1), prob_set[0])) #up-left
+            poss.append(((s[_X], s[_Y]-1), prob_set[1]))   #up
+            poss.append(((s[_X]-1, s[_Y]), prob_set[1]))   #left
+            poss.append(((s[_X]+1, s[_Y]-1), prob_set[2])) #up-right
+            poss.append(((s[_X]-1, s[_Y]+1), prob_set[2])) #bottom-left
         elif a == 'se':
-            if s[_X] < self.cols - 1 and s[_Y] < self.rows - 1:
-                new_pos[_X] += 1
-                new_pos[_Y] += 1
+            # if s[_X] < self.cols - 1 and s[_Y] < self.rows - 1:
+            #     new_pos[_X] += 1
+            #     new_pos[_Y] += 1
+            poss.append(((s[_X]+1, s[_Y]+1), prob_set[0])) #bottom-right
+            poss.append(((s[_X]+1, s[_Y]), prob_set[1]))   #right
+            poss.append(((s[_X], s[_Y]+1), prob_set[1]))   #bottom
+            poss.append(((s[_X]+1, s[_Y]-1), prob_set[2])) #upper-right
+            poss.append(((s[_X]-1, s[_Y]+1), prob_set[2])) #bottom-left
         elif a == 'sw':
-            if s[_X] > 0 and s[_Y] < self.rows - 1:
-                new_pos[_X] -= 1
-                new_pos[_Y] += 1
+            # if s[_X] > 0 and s[_Y] < self.rows - 1:
+            #     new_pos[_X] -= 1
+            #     new_pos[_Y] += 1
+            poss.append(((s[_X]-1, s[_Y]+1), prob_set[0])) #bottom-left
+            poss.append(((s[_X], s[_Y]+1), prob_set[1]))   #bottom
+            poss.append(((s[_X]-1, s[_Y]), prob_set[1]))   #left
+            poss.append(((s[_X]-1, s[_Y]-1), prob_set[2])) #upper-left
+            poss.append(((s[_X]+1, s[_Y]+1), prob_set[2])) #bottom-right
         else:
             print 'Unknown action:', str(a)
 
+        # if we aren't simulating, just return 'poss'
+        if !sim:
+            return poss
+        
+        # otherwise we need to pick one
+        new_pos = list(s[:])
+        rand = numpy.random.random_sample()
+        cur_val = 0
+
+        for x in range(0, len(poss)):
+            cur_val += poss[x][1] #add the probability of this one
+            if cur_val < rand:
+                new_pos[_X] = poss[x][0][0]
+                new_pos[_Y] = poss[X][0][1]
+                break
+
         # Test if new position is clear
-        if self.occupancy_grid[new_pos[0], new_pos[1]]:
+        if new_pos[_X] < 0 or new_pos[_X] >= self.cols or new_pos[_Y] < 0 or new_pos[_Y] >= self.rows
+                    self.is_goal(s) or self.occupancy_grid[new_pos[0], new_pos[1]]:
             s_prime = tuple(s)
         else:
             s_prime = tuple(new_pos)
