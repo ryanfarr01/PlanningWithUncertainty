@@ -45,6 +45,7 @@ _X = 1
 _Y = 0
 _GOAL_COLOR    = 0.75
 _INIT_COLOR    = 0.25
+_BLACK         = 0.0
 _VISITED_COLOR = 0.9
 _PATH_COLOR_RANGE = _GOAL_COLOR - _INIT_COLOR
 
@@ -235,6 +236,31 @@ class GridMap:
         imgplot.set_cmap('spectral')
         plotter.show()
 
+    def display_states(self, map):
+        display_grid = np.array(self.occupancy_grid, dtype=np.float32)
+        min_val = 10000000
+        max_val = -10000000
+
+        for y in xrange(len(map)):
+            for x in xrange(len(map[y])):
+                plotter.text(x, y, map[y][x][1])
+                if map[y][x][0] > max_val:
+                    max_val = map[y][x][0]
+                if map[y][x][0] < min_val:
+                    min_val = map[y][x][0]
+        for y in xrange(len(map)):
+            for x in xrange(len(map[y])):
+                if self.occupancy_grid[y][x]:
+                    display_grid[(y, x)] = _BLACK
+                else:
+                    display_grid[(y, x)] = _INIT_COLOR + ((map[y][x][0] - min_val)/max_val)
+
+            display_grid[self.goal] = _GOAL_COLOR
+            imgplot = plotter.imshow(display_grid)
+            imgplot.set_interpolation('nearest')
+            imgplot.set_cmap('spectral')
+            plotter.show()
+
     def display_values(self, map):
         '''
         Visualize the map read in. Optionally display the resulting plan and visisted nodes
@@ -243,10 +269,23 @@ class GridMap:
         '''
         display_grid = np.array(self.occupancy_grid, dtype=np.float32)
 
-        display_grid[self.goal] = _GOAL_COLOR
+        min_val = 10000000
+        max_val = -10000000
         for y in xrange(len(map)):
             for x in xrange(len(map[y])):
-                plotter.text(x, y, map[y][x])
+                plotter.text(x, y, "%.2f" % map[y][x][0])
+                if map[y][x][0] > max_val:
+                    max_val = map[y][x][0]
+                if map[y][x][0] < min_val:
+                    min_val = map[y][x][0]
+
+        for y in xrange(len(map)):
+            for x in xrange(len(map[y])):
+                if self.occupancy_grid[y][x]:
+                    display_grid[(y, x)] = _BLACK
+                else:
+                    display_grid[(y,x)] = _INIT_COLOR + ((map[y][x][0] - min_val)/max_val)
+        display_grid[self.goal] = _GOAL_COLOR
 
         # Plot display grid for visualization
         imgplot = plotter.imshow(display_grid)
@@ -384,12 +423,15 @@ def value_iteration(map, t, discount, action_set, probs, base_reward = 0, goal_r
         grireward_grid[map.rows-1][map.cols-1] = corner_reward
     
     # the value grid is the same as the reward grid initially
-    value_grid = [map.rows]
+    #print('map rows: ' + str(map.rows))
+    #print('map cols: ' + str(map.cols))
+    value_grid = [None] * map.rows
     for y in xrange(len(value_grid)):
-        value_grid[y] = [map.cols]
+        value_grid[y] = [0] * map.cols
         for x in xrange(len(value_grid[y])):
             r = reward_grid[y][x]
             value_grid[y][x] = (r, r) #g[0] = current, g[1] = previous value
+    print('value_grid dimensions: ' + str(len(value_grid)) + 'x' + str(len(value_grid[0])))
 
     #Iterate to get value iteration
     needs_iteration = True
@@ -399,28 +441,44 @@ def value_iteration(map, t, discount, action_set, probs, base_reward = 0, goal_r
         needs_iteration = False
         for y in xrange(len(value_grid)):
             for x in xrange(len(value_grid[y])):
+                #print('')
+                #print('at x and y: ' + str(x) + ' ' + str(y))
+                #print('--------------------------')
                 #get max action value and set as value in grid
                 max_val = -sys.maxint - 1 #get minimum value
                 for a in action_set:
+                    #print('')
                     cur_val = 0
                     a_set = t((y, x), a, probs, False)
                     for s, prob in a_set:
-                        print('prob: ' + str(prob))
-                        print('reward: ' + str(reward_grid[s[0]][s[1]]))
-                        print('discount: ' + str(discount))
-                        print('value: ' + str(value_grid[s[0]][s[1]]))
-                        cur_val += prob * (reward_grid[s[0]][s[1]] + (discount * value_grid[s[0]][s[1]][1]))
+                        #print('prob: ' + str(prob))
+                        #print('reward: ' + str(reward_grid[s[0]][s[1]]))
+                        #print('discount: ' + str(discount))
+                        #print('s: ' + str(s[0]) + ' ' + str(s[1]))
+                        #print('value_grid: ' + str(len(value_grid)) + 'x' + str(len(value_grid[0])))
+                        s_x = s[_X]
+                        s_y = s[_Y]
+                        reward = reward_grid[s_y][s_x]
+                        value = value_grid[s_y][s_x][1]
+                        #print('Looking at point: (' + str(s_x) + ', ' + str(s_y))
+                        #print('value: ' + str(value))
+                        #print('reward:' + str(reward))
+                        #print('RHs: ' + str(discount*value))
+                        #print('Total (before multiply): ' + str(reward + (discount*value)))
+                        #print('Total: ' + str(prob*(reward+(discount*value))))
+                        cur_val += prob * (reward + (discount * value))
                     
                     if cur_val > max_val:
                         max_val = cur_val
-                value_grid[y][x][0] = max_val
-                if value_grid[y][x][0] != value_grid[y][x][1]:
+                temp_val = value_grid[y][x][0]
+                value_grid[y][x] = (max_val, value_grid[y][x][1])
+                if value_grid[y][x][0] != temp_val:
                     needs_iteration = True
-
+        update_grid(value_grid)
     #Get the policy
-    policy_grid = [map.row]
+    policy_grid = [None] * map.rows
     for y in xrange(len(policy_grid)):
-        policy_grid[y] = [map.cols]
+        policy_grid[y] = [None] * map.cols
         for x in xrange(len(policy_grid[y])):
             val = value_grid[y][x][0]
             max_val = -sys.maxint - 1
@@ -434,7 +492,7 @@ def value_iteration(map, t, discount, action_set, probs, base_reward = 0, goal_r
                 if cur_val > max_val:
                     max_val = cur_val
                     best_action = a
-            policy_grid[y][x] = (value_grid[y][x], best_action)
+            policy_grid[y][x] = (value_grid[y][x][0], best_action)
 
     return (policy_grid, iter)
 
@@ -448,7 +506,7 @@ def update_grid(grid):
     '''
     for y in xrange(len(grid)):
         for x in xrange(len(grid[y])):
-            grid[y][x][1] = grid[y][x][0]
+            grid[y][x] = (grid[y][x][0], grid[y][x][0])
 
     return grid
 
@@ -530,8 +588,11 @@ def main(argv):
         print('Performing BFS...')
         path = bfs(map.init_pos, map.transition, map.is_goal, actions)
     elif argv[3] == 'value_iteration':
-        v_map, iterations = value_iteration(map, map.transition, 0.8, actions, _PROBS, base_reward = 0, goal_reward = 10, corner_reward = 0, use_corners = False)
+        v_map, iterations = value_iteration(map, map.transition, 0.8, actions, _PROBS, base_reward = 0.0, goal_reward = 10.0, corner_reward = 0, use_corners = False)
+        print('Number of iterations: ' + str(iterations))
         map.display_values(v_map)
+        map.display_states(v_map)
+        return
     else:
         print('Algorithm: \'' + argv[3] + '\' is not recognized')
         print('')
