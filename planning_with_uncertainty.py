@@ -106,7 +106,7 @@ class GridMap:
         return (s[_X] == self.goal[_X] and
                 s[_Y] == self.goal[_Y])
 
-    def transition(self, s, a):
+    def transition(self, s, a,  ):
         '''
         Transition function for the current grid map.
 
@@ -185,25 +185,6 @@ class GridMap:
         imgplot.set_cmap('spectral')
         plotter.show()
 
-    def uninformed_heuristic(self, s):
-        '''
-        Example of how a heuristic may be provided. This one is admissable, but dumb.
-
-        s - tuple describing the state as (row, col) position on the grid.
-
-        returns - floating point estimate of the cost to the goal from state s
-        '''
-        return 0.0
-
-    def euclidian_distance_heuristic(self, s):
-        return math.sqrt(math.pow(s[_X] - self.goal[_X], 2) + math.pow(s[_Y] - self.goal[_Y], 2))
-
-    def manhattan_distance_heuristic(self, s):
-        return abs(s[_X] - self.goal[_X]) + abs(s[_Y] - self.goal[_Y])
-
-    def chebyshev_distance_heuristic(self, s):
-        return min(abs(s[_X] - self.goal[_X]), abs(s[_Y] - self.goal[_Y]))
-
 
 class SearchNode:
     def __init__(self, s, A, parent=None, parent_action=None, cost=0):
@@ -224,170 +205,6 @@ class SearchNode:
         Return a human readable description of the node
         '''
         return str(self.state) + ' ' + str(self.actions)+' '+str(self.parent)+' '+str(self.parent_action)
-
-class PriorityQ:
-    '''
-    Priority queue implementation with quick access for membership testing
-    Setup currently to only with the SearchNode class
-    '''
-    def __init__(self):
-        '''
-        Initialize an empty priority queue
-        '''
-        self.l = [] # list storing the priority q
-        self.s = set() # set for fast membership testing
-
-    def __contains__(self, x):
-        '''
-        Test if x is in the queue
-        '''
-        return x in self.s
-
-    def push(self, x, cost):
-        '''
-        Adds an element to the priority queue.
-        If the state already exists, we update the cost
-        '''
-        if x.state in self.s:
-            return self.replace(x, cost)
-        heapq.heappush(self.l, (cost, x))
-        self.s.add(x.state)
-
-    def pop(self):
-        '''
-        Get the value and remove the lowest cost element from the queue
-        '''
-        x = heapq.heappop(self.l)
-        self.s.remove(x[1].state)
-        return x[1]
-
-    def peak(self):
-        '''
-        Get the value of the lowest cost element in the priority queue
-        '''
-        x = self.l[0]
-        return x[1]
-
-    def __len__(self):
-        '''
-        Return the number of elements in the queue
-        '''
-        return len(self.l)
-
-    def replace(self, x, new_cost):
-        '''
-        Removes element x from the q and replaces it with x with the new_cost
-        '''
-        for y in self.l:
-            if x.state == y[1].state:
-                self.l.remove(y)
-                self.s.remove(y[1].state)
-                break
-        heapq.heapify(self.l)
-        self.push(x, new_cost)
-
-    def get_cost(self, x):
-        '''
-        Return the cost for the search node with state x.state
-        '''
-        for y in self.l:
-            if x.state == y[1].state:
-                return y[0]
-
-    def __str__(self):
-        '''
-        Return a string of the contents of the list
-        '''
-        return str(self.l)
-
-def dfs(init_state, f, is_goal, actions):
-    '''
-    Perform depth first search on a grid map.
-
-    init_state - the intial state on the map
-    f - transition function of the form s_prime = f(s,a)
-    is_goal - function taking as input a state s and returning True if its a goal state
-    actions - set of actions which can be taken by the agent
-
-    returns - ((path, action_path), visited) or None if no path can be found
-    path - a list of tuples. The first element is the initial state followed by all states
-        traversed until the final goal state
-    action_path - the actions taken to transition from the initial state to goal state
-    '''
-    frontier = [] #use as queue
-    n0 = SearchNode(init_state, actions)
-    visited = set()
-    frontier.append(n0)
-    while len(frontier) > 0:
-        n_i = frontier.pop()
-        if n_i.state not in visited:
-            visited.add(n_i.state)
-            if is_goal(n_i.state):
-                return(backpath(n_i), visited)
-            else:
-                for a in actions:
-                    s_prime = f(n_i.state, a)
-                    n_prime = SearchNode(s_prime, actions, n_i, a)
-                    frontier.append(n_prime)
-    
-    #If we get here, the goal was never reached
-    return None
-
-def iterative_deepening(init_state, f, is_goal, actions, max_depth):
-    '''
-    iterative_deepening driver function
-
-    init_state - the intial state on the map
-    f - transition function of the form s_prime = f(s,a)
-    is_goal - function taking as input a state s and returning True if its a goal state
-    actions - set of actions which can be taken by the agent
-    max_depth - the maximum allowed depth to search
-
-    returns - ((path, action_path), visited) or None if no path can be found
-    '''
-    visited = set()
-    for i in range(0, max_depth + 1):
-        result = iterative_deepening_search(init_state, f, is_goal, actions, i, visited)
-        if result != None:
-            return result
-
-    return None
-
-def iterative_deepening_search(init_state, f, is_goal, actions, max_depth, visited):
-    '''
-    Performs iterative deepening depth-first search
-
-    init_state - the intial state on the map
-    f - transition function of the form s_prime = f(s,a)
-    is_goal - function taking as input a state s and returning True if its a goal state
-    actions - set of actions which can be taken by the agent
-    max_depth - the maximum allowed depth to search before giving up
-    visited - the set of visited nodes, may not be empty
-
-    returns - ((path, action_path), visited) or None if no path can be found
-    '''
-
-    frontier = [] #The search stack
-    n0 = SearchNode(init_state, actions)
-    frontier.append((n0, 0))
-    while len(frontier) > 0:
-        n_i = frontier.pop()
-        node = n_i[0]
-        depth = n_i[1]
-        if (node.state, depth, max_depth) not in visited and depth <= max_depth:
-            visited.add((node.state, depth, max_depth))
-            if is_goal(node.state):
-                ret_visited = set()
-                for t in visited:
-                    ret_visited.add(t[0])
-                return(backpath(node), ret_visited)
-            else:
-                for a in actions:
-                    s_prime = f(node.state, a)
-                    n_prime = SearchNode(s_prime, actions, node, a)
-                    frontier.append((n_prime, depth + 1))
-
-    return None
 
 def bfs(init_state, f, is_goal, actions):
     '''
@@ -420,61 +237,6 @@ def bfs(init_state, f, is_goal, actions):
                     frontier.append(n_prime)
     
     #If we get here, the goal was never reached
-    return None
-
-def uniform_cost_search(init_state, f, is_goal, actions, action_cost):
-    '''
-    init_state - value of the initial state
-    f - transition function takes input state (s), action (a), returns s_prime = f(s, a)
-    is_goal - takes state as input returns true if it is a goal
-    actions - list of possible actions available
-    action_cost - mapping of actions to their cost
-    '''
-    frontier = PriorityQ()
-    n0 = SearchNode(init_state, actions)
-    visited = set()
-    frontier.push(n0, 0)
-    while len(frontier) > 0:
-        n_i = frontier.pop()
-        if n_i.state not in visited:
-            visited.add(n_i.state)
-            if is_goal(n_i.state):
-                return(backpath(n_i), visited)
-            else:
-                for a in actions:
-                    s_prime = f(n_i.state, a)
-                    n_prime = SearchNode(s_prime, actions, n_i, a, n_i.cost + action_cost[a])
-                    if (n_prime.state not in frontier) or (n_prime.cost < frontier.get_cost(n_prime)):
-                        frontier.push(n_prime, n_prime.cost)
-    return None
-
-def a_star_search(init_state, f, is_goal, actions, action_cost, h):
-    '''
-    init_state - value of the initial state
-    f - transition function takes input state (s), action (a), returns s_prime = f(s, a)
-        returns s if action is not valid
-    is_goal - takes state as input returns true if it is a goal state
-        actions - list of actions available
-    h - heuristic function, takes input s and returns estimated cost to goal
-        (note h will also need access to the map, so should be a member function of GridMap)
-    '''
-    frontier = PriorityQ()
-    n0 = SearchNode(init_state, actions)
-    visited = set()
-    frontier.push(n0, 0)
-    while len(frontier) > 0:
-        n_i = frontier.pop()
-        if n_i.state not in visited:
-            visited.add(n_i.state)
-            if is_goal(n_i.state):
-                return(backpath(n_i), visited)
-            else:
-                for a in actions:
-                    s_prime = f(n_i.state, a)
-                    n_prime = SearchNode(s_prime, actions, n_i, a, n_i.cost + action_cost[a])
-                    tot_cost = n_prime.cost + h(n_prime.state)
-                    if (n_prime.state not in frontier) or (tot_cost < frontier.get_cost(n_prime)):
-                        frontier.push(n_prime, tot_cost)
     return None
 
 def backpath(node):
@@ -556,22 +318,6 @@ def help():
     print('Example using API:')
     print('    graph_search.run_algorithm(\'Tests/map1.txt\', \'actions_1\', \'bfs\')')
     
-
-def get_heuristic(map, h):
-    if h == 'uninformed':
-        return map.uninformed_heuristic
-    elif h == 'euclidian':
-        return map.euclidian_distance_heuristic
-    elif h == 'manhattan':
-        return map.manhattan_distance_heuristic
-    elif h == 'chebyshev':
-        return map.chebyshev_distance_heuristic
-
-    print('Could not interpret heuristic \'' + h + '\'. Accepted: uninformed, euclidian, manhattan, chebyshev.')
-    print('')
-    help()
-    return -1
-
 def main(argv):
     if len(argv) != 4 and len(argv) != 5:
         help()
