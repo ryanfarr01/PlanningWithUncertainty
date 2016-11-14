@@ -125,53 +125,53 @@ class GridMap:
         poss = []
 
         if a == 'u':
-            poss.append(((s[_Y]-1, s[_X]), prob_set[0]))   #up
-            poss.append(((s[_Y]-1, s[_X]-1), prob_set[1])) #up-left
-            poss.append(((s[_Y]-1, s[_X]+1), prob_set[1])) #up-right
-            poss.append(((s[_Y], s[_X]-1), prob_set[2]))   #left
-            poss.append(((s[_Y], s[_X]+1), prob_set[2]))   #right
+            poss.append((self.get_grid_point((s[_Y]-1, s[_X]), s), prob_set[0]))   #up
+            poss.append((self.get_grid_point((s[_Y]-1, s[_X]-1), s), prob_set[1])) #up-left
+            poss.append((self.get_grid_point((s[_Y]-1, s[_X]+1), s), prob_set[1])) #up-right
+            poss.append((self.get_grid_point((s[_Y], s[_X]-1), s), prob_set[2]))   #left
+            poss.append((self.get_grid_point((s[_Y], s[_X]+1), s), prob_set[2]))   #right
         elif a == 'd':
-            poss.append(((s[_Y]+1, s[_X]), prob_set[0]))   #down
-            poss.append(((s[_Y]+1, s[_X]-1), prob_set[1])) #down-left
-            poss.append(((s[_Y]+1, s[_X]+1), prob_set[1])) #down-right
-            poss.append(((s[_Y], s[_X]-1), prob_set[2]))   #left
-            poss.append(((s[_Y], s[_X]+1), prob_set[2]))   #right
+            poss.append((self.get_grid_point((s[_Y]+1, s[_X]), s), prob_set[0]))   #down
+            poss.append((self.get_grid_point((s[_Y]+1, s[_X]-1), s), prob_set[1])) #down-left
+            poss.append((self.get_grid_point((s[_Y]+1, s[_X]+1), s), prob_set[1])) #down-right
+            poss.append((self.get_grid_point((s[_Y], s[_X]-1), s), prob_set[2]))   #left
+            poss.append((self.get_grid_point((s[_Y], s[_X]+1), s), prob_set[2]))   #right
         elif a == 'l':
-            poss.append(((s[_Y], s[_X]-1), prob_set[0]))   #left
-            poss.append(((s[_Y]-1, s[_X]-1), prob_set[1])) #up-left
-            poss.append(((s[_Y]+1, s[_X]-1), prob_set[1])) #down-left
-            poss.append(((s[_Y]-1, s[_X]), prob_set[2]))   #up
-            poss.append(((s[_Y]+1, s[_X]), prob_set[2]))   #down
+            poss.append((self.get_grid_point((s[_Y], s[_X]-1), s), prob_set[0]))   #left
+            poss.append((self.get_grid_point((s[_Y]-1, s[_X]-1), s), prob_set[1])) #up-left
+            poss.append((self.get_grid_point((s[_Y]+1, s[_X]-1), s), prob_set[1])) #down-left
+            poss.append((self.get_grid_point((s[_Y]-1, s[_X]), s), prob_set[2]))   #up
+            poss.append((self.get_grid_point((s[_Y]+1, s[_X]), s), prob_set[2]))   #down
         elif a == 'r':
-            poss.append(((s[_Y], s[_X]+1), prob_set[0]))   #right
-            poss.append(((s[_Y]-1, s[_X]+1), prob_set[1])) #up-right
-            poss.append(((s[_Y]+1, s[_X]+1), prob_set[1])) #down-right
-            poss.append(((s[_Y]+1, s[_X]), prob_set[2]))   #down
-            poss.append(((s[_Y]-1, s[_X]), prob_set[2]))   #up
+            poss.append((self.get_grid_point((s[_Y], s[_X]+1), s), prob_set[0]))   #right
+            poss.append((self.get_grid_point((s[_Y]-1, s[_X]+1), s), prob_set[1])) #up-right
+            poss.append((self.get_grid_point((s[_Y]+1, s[_X]+1), s), prob_set[1])) #down-right
+            poss.append((self.get_grid_point((s[_Y]+1, s[_X]), s), prob_set[2]))   #down
+            poss.append((self.get_grid_point((s[_Y]-1, s[_X]), s), prob_set[2]))   #up
         elif a == 'ne':
-            poss.append(((s[_Y]-1, s[_X]+1), prob_set[0])) #up-right
-            poss.append(((s[_Y]-1, s[_X]), prob_set[1]))   #up
-            poss.append(((s[_Y], s[_X]+1), prob_set[1]))   #left
-            poss.append(((s[_Y]-1, s[_X]-1), prob_set[2])) #up-left
-            poss.append(((s[_Y]+1, s[_X]+1), prob_set[2])) #bottom-right
+            poss.append((self.get_grid_point((s[_Y]-1, s[_X]+1), s), prob_set[0])) #up-right
+            poss.append((self.get_grid_point((s[_Y]-1, s[_X]), s), prob_set[1]))   #up
+            poss.append((self.get_grid_point((s[_Y], s[_X]+1), s), prob_set[1]))   #left
+            poss.append((self.get_grid_point((s[_Y]-1, s[_X]-1), s), prob_set[2])) #up-left
+            poss.append((self.get_grid_point((s[_Y]+1, s[_X]+1), s), prob_set[2])) #bottom-right
         elif a == 'nw':
-            poss.append(((s[_Y]-1, s[_X]-1), prob_set[0])) #up-left
-            poss.append(((s[_Y]-1, s[_X]), prob_set[1]))   #up
-            poss.append(((s[_Y], s[_X]-1), prob_set[1]))   #left
-            poss.append(((s[_Y]-1, s[_X]+1), prob_set[2])) #up-right
-            poss.append(((s[_Y]+1, s[_X]-1), prob_set[2])) #bottom-left
+            poss.append((self.get_grid_point((s[_Y]-1, s[_X]-1), s), prob_set[0])) #up-left
+            poss.append((self.get_grid_point((s[_Y]-1, s[_X]), s), prob_set[1]))   #up
+            poss.append((self.get_grid_point((s[_Y], s[_X]-1), s), prob_set[1]))   #left
+            poss.append((self.get_grid_point((s[_Y]-1, s[_X]+1), s), prob_set[2])) #up-right
+            poss.append((self.get_grid_point((s[_Y]+1, s[_X]-1), s), prob_set[2])) #bottom-left
         elif a == 'se':
-            poss.append(((s[_Y]+1, s[_X]+1), prob_set[0])) #bottom-right
-            poss.append(((s[_Y], s[_X]+1), prob_set[1]))   #right
-            poss.append(((s[_Y]+1, s[_X]), prob_set[1]))   #bottom
-            poss.append(((s[_Y]-1, s[_X]+1), prob_set[2])) #upper-right
-            poss.append(((s[_Y]+1, s[_X]-1), prob_set[2])) #bottom-left
+            poss.append((self.get_grid_point((s[_Y]+1, s[_X]+1), s), prob_set[0])) #bottom-right
+            poss.append((self.get_grid_point((s[_Y], s[_X]+1), s), prob_set[1]))   #right
+            poss.append((self.get_grid_point((s[_Y]+1, s[_X]), s), prob_set[1]))   #bottom
+            poss.append((self.get_grid_point((s[_Y]-1, s[_X]+1), s), prob_set[2])) #upper-right
+            poss.append((self.get_grid_point((s[_Y]+1, s[_X]-1), s), prob_set[2])) #bottom-left
         elif a == 'sw':
-            poss.append(((s[_Y]+1, s[_X]-1), prob_set[0])) #bottom-left
-            poss.append(((s[_Y]+1, s[_X]), prob_set[1]))   #bottom
-            poss.append(((s[_Y], s[_X]-1), prob_set[1]))   #left
-            poss.append(((s[_Y]-1, s[_X]-1), prob_set[2])) #upper-left
-            poss.append(((s[_Y]+1, s[_X]+1), prob_set[2])) #bottom-right
+            poss.append((self.get_grid_point((s[_Y]+1, s[_X]-1), s), prob_set[0])) #bottom-left
+            poss.append((self.get_grid_point((s[_Y]+1, s[_X]), s), prob_set[1]))   #bottom
+            poss.append((self.get_grid_point((s[_Y], s[_X]-1), s), prob_set[1]))   #left
+            poss.append((self.get_grid_point((s[_Y]-1, s[_X]-1), s), prob_set[2])) #upper-left
+            poss.append((self.get_grid_point((s[_Y]+1, s[_X]+1), s), prob_set[2])) #bottom-right
         else:
             print 'Unknown action:', str(a)
 
@@ -191,12 +191,22 @@ class GridMap:
                 new_pos[_Y] = poss[x][0][_Y]
                 break
 
-        # Test if new position is clear
-        if new_pos[_X] < 0 or new_pos[_X] >= self.cols or new_pos[_Y] < 0 or new_pos[_Y] >= self.rows or self.is_goal(s) or self.occupancy_grid[new_pos[0], new_pos[1]]:
-            s_prime = tuple(s)
-        else:
-            s_prime = tuple(new_pos)
-        return s_prime
+        return tuple(new_pos)
+
+    def get_grid_point(self, point, original):
+        '''
+        Function that determines which point point to use - original or calculated
+
+        point - the point being tested against boundaries
+        original - the original point, which we default to if point is out of bounds
+
+        returns - either the point or the original. Original if it's out of bounds, is
+            the goal, or hits a wall. Point is otherwise returned
+        '''
+        if point[_X] < 0 or point[_X] >= self.cols or point[_Y] < 0 or point[_Y] >= self.rows or self.is_goal(original) or self.occupancy_grid[point[0], point[1]]:
+            return original
+        
+        return point
 
     def display_map(self, path=[], visited={}):
         '''
@@ -216,7 +226,27 @@ class GridMap:
             display_grid[p] = disp_col
 
         display_grid[self.init_pos] = _INIT_COLOR
-        # display_grid[self.goal] = _GOAL_COLOR
+
+        # Plot display grid for visualization
+        imgplot = plotter.imshow(display_grid)
+        # Set interpolation to nearest to create sharp boundaries
+        imgplot.set_interpolation('nearest')
+        # Set color map to diverging style for contrast
+        imgplot.set_cmap('spectral')
+        plotter.show()
+
+    def display_values(self, map):
+        '''
+        Visualize the map read in. Optionally display the resulting plan and visisted nodes
+
+        path - a list of tuples describing the path take from init to goal
+        '''
+        display_grid = np.array(self.occupancy_grid, dtype=np.float32)
+
+        display_grid[self.goal] = _GOAL_COLOR
+        for y in xrange(len(map)):
+            for x in xrange(len(map[y])):
+                plotter.text(x, y, map[y][x])
 
         # Plot display grid for visualization
         imgplot = plotter.imshow(display_grid)
@@ -329,7 +359,7 @@ def backpath_stochastic(start, actions, probs, t):
 
     return (path, actions)
 
-def value_iteration(map, discount, action_set, probs, base_reward = 0, goal_reward = 10, corner_reward = 0, use_corners = False):
+def value_iteration(map, t, discount, action_set, probs, base_reward = 0, goal_reward = 10, corner_reward = 0, use_corners = False):
     '''
     Function that performs value iteration on a map
 
@@ -343,17 +373,84 @@ def value_iteration(map, discount, action_set, probs, base_reward = 0, goal_rewa
     use_corners - bool which tells if we should use different value for corners than base_value
 
     returns - a grid containing tuples of the form: (value, action) as well as the
-        number of iterations required to converge: ((value, action), iterations)
+        number of iterations required to converge: (grid(value, action), iterations)
     '''
-    grid = [[base_reward for i in xrange(0, map.cols)] for i in xrange(0, map.rows)]
-    grid[map.goal[_Y]][map.goal[_X]] = goal_reward
+    reward_grid = [[base_reward for i in xrange(0, map.cols)] for i in xrange(0, map.rows)]
+    reward_grid[map.goal[_Y]][map.goal[_X]] = goal_reward
     if use_corners:
-        grid[0][0] = corner_reward
-        grid[0][map.cols-1] = corner_reward
-        grid[map.rows-1][0] = corner_reward
-        grid[map.rows-1][map.cols-1] = corner_reward
+        reward_grid[0][0] = corner_reward
+        reward_grid[0][map.cols-1] = corner_reward
+        grireward_grid[map.rows-1][0] = corner_reward
+        grireward_grid[map.rows-1][map.cols-1] = corner_reward
+    
+    # the value grid is the same as the reward grid initially
+    value_grid = [map.rows]
+    for y in xrange(len(value_grid)):
+        value_grid[y] = [map.cols]
+        for x in xrange(len(value_grid[y])):
+            r = reward_grid[y][x]
+            value_grid[y][x] = (r, r) #g[0] = current, g[1] = previous value
 
-    return None
+    #Iterate to get value iteration
+    needs_iteration = True
+    iter = 0
+    while(needs_iteration):
+        iter += 1
+        needs_iteration = False
+        for y in xrange(len(value_grid)):
+            for x in xrange(len(value_grid[y])):
+                #get max action value and set as value in grid
+                max_val = -sys.maxint - 1 #get minimum value
+                for a in action_set:
+                    cur_val = 0
+                    a_set = t((y, x), a, probs, False)
+                    for s, prob in a_set:
+                        print('prob: ' + str(prob))
+                        print('reward: ' + str(reward_grid[s[0]][s[1]]))
+                        print('discount: ' + str(discount))
+                        print('value: ' + str(value_grid[s[0]][s[1]]))
+                        cur_val += prob * (reward_grid[s[0]][s[1]] + (discount * value_grid[s[0]][s[1]][1]))
+                    
+                    if cur_val > max_val:
+                        max_val = cur_val
+                value_grid[y][x][0] = max_val
+                if value_grid[y][x][0] != value_grid[y][x][1]:
+                    needs_iteration = True
+
+    #Get the policy
+    policy_grid = [map.row]
+    for y in xrange(len(policy_grid)):
+        policy_grid[y] = [map.cols]
+        for x in xrange(len(policy_grid[y])):
+            val = value_grid[y][x][0]
+            max_val = -sys.maxint - 1
+            best_action = 'n'
+            for a in action_set:
+                cur_val = 0
+                a_set = t((y, x), a, probs, False)
+                for s, prob in a_set:
+                    cur_val += prob * value_grid[s[0]][s[1]][0]
+                
+                if cur_val > max_val:
+                    max_val = cur_val
+                    best_action = a
+            policy_grid[y][x] = (value_grid[y][x], best_action)
+
+    return (policy_grid, iter)
+
+def update_grid(grid):
+    '''
+    Function that moves grid values from current to previous
+
+    grid - the grid as a 2D array of tuples that needs updating
+
+    returns - the updated grid
+    '''
+    for y in xrange(len(grid)):
+        for x in xrange(len(grid[y])):
+            grid[y][x][1] = grid[y][x][0]
+
+    return grid
 
 def run_algorithm(path, action, algorithm, heuristic = 'uninformed'):
     '''
@@ -432,6 +529,9 @@ def main(argv):
     if argv[3] == 'bfs':
         print('Performing BFS...')
         path = bfs(map.init_pos, map.transition, map.is_goal, actions)
+    elif argv[3] == 'value_iteration':
+        v_map, iterations = value_iteration(map, map.transition, 0.8, actions, _PROBS, base_reward = 0, goal_reward = 10, corner_reward = 0, use_corners = False)
+        map.display_values(v_map)
     else:
         print('Algorithm: \'' + argv[3] + '\' is not recognized')
         print('')
