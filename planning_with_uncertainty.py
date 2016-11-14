@@ -107,13 +107,13 @@ class GridMap:
         return (s[_X] == self.goal[_X] and
                 s[_Y] == self.goal[_Y])
 
-    def transition(self, s, a, action_set, sim):
+    def transition(self, s, a, prob_set, sim):
         '''
         Transition function for the current grid map.
 
         s - tuple describing the state as (row, col) position on the grid.
         a - the action to be performed from state s
-        action_set - 1 for action set 1 or 2 for action set 2. Changes the probabilities returned
+        prob_set - which probability set to use
         sim - whether or not to simulate the action. If true, returns a state. Otherwise,
               returns a list of 2-tuples with state and probability
 
@@ -123,103 +123,96 @@ class GridMap:
         '''
         # Ensure action stays on the board
         poss = []
-        prob_set = []
-        
-        if action_set == 1:
-            prob_set = PROBS
-        else:
-            prob_set = PROBS_2
 
         if a == 'u':
             #if s[_Y] > 0:
                 #new_pos[_Y] -= 1
-            poss.append(((s[_X], s[_Y]-1), prob_set[0]))   #up
-            poss.append(((s[_X]-1, s[_Y]-1), prob_set[1])) #up-left
-            poss.append(((s[_X]+1, s[_Y]-1), prob_set[1])) #up-right
-            poss.append(((s[_X]-1, s[_Y]), prob_set[2]))   #left
-            poss.append(((s[_X]+1, s[_Y]), prob_set[2]))   #right
+            poss.append(((s[_Y]-1, s[_X]), prob_set[0]))   #up
+            poss.append(((s[_Y]-1, s[_X]-1), prob_set[1])) #up-left
+            poss.append(((s[_Y]-1, s[_X]+1), prob_set[1])) #up-right
+            poss.append(((s[_Y], s[_X]-1), prob_set[2]))   #left
+            poss.append(((s[_Y], s[_X]+1), prob_set[2]))   #right
         elif a == 'd':
             # if s[_Y] < self.rows - 1:
             #     new_pos[_Y] += 1
-            poss.append(((s[_X], s[_Y]+1), prob_set[0]))   #down
-            poss.append(((s[_X]-1, s[_Y]+1), prob_set[1])) #down-left
-            poss.append(((s[_X]+1, s[_Y]+1), prob_set[1])) #down-right
-            poss.append(((s[_X]-1, s[_Y]), prob_set[2]))   #left
-            poss.append(((s[_X]+1, s[_Y]), prob_set[2]))   #right
+            poss.append(((s[_Y]+1, s[_X]), prob_set[0]))   #down
+            poss.append(((s[_Y]+1, s[_X]-1), prob_set[1])) #down-left
+            poss.append(((s[_Y]+1, s[_X]+1), prob_set[1])) #down-right
+            poss.append(((s[_Y], s[_X]-1), prob_set[2]))   #left
+            poss.append(((s[_Y], s[_X]+1), prob_set[2]))   #right
         elif a == 'l':
             # if s[_X] > 0:
             #     new_pos[_X] -= 1
-            poss.append(((s[_X]-1, s[_Y]), prob_set[0]))   #left
-            poss.append(((s[_X]-1, s[_Y]-1), prob_set[1])) #up-left
-            poss.append(((s[_X]-1, s[_Y]+1), prob_set[1])) #down-left
-            poss.append(((s[_X], s[_Y]-1), prob_set[2]))   #up
-            poss.append(((s[_X], s[_Y]+1), prob_set[2]))   #down
+            poss.append(((s[_Y], s[_X]-1), prob_set[0]))   #left
+            poss.append(((s[_Y]-1, s[_X]-1), prob_set[1])) #up-left
+            poss.append(((s[_Y]+1, s[_X]-1), prob_set[1])) #down-left
+            poss.append(((s[_Y]-1, s[_X]), prob_set[2]))   #up
+            poss.append(((s[_Y]+1, s[_X]), prob_set[2]))   #down
         elif a == 'r':
             # if s[_X] < self.cols - 1:
             #     new_pos[_X] += 1
-            poss.append(((s[_X]+1, s[_Y]), prob_set[0]))   #right
-            poss.append(((s[_X]+1, s[_Y]-1), prob_set[1])) #up-right
-            poss.append(((s[_X]+1, s[_Y]+1), prob_set[1])) #down-right
-            poss.append(((s[_X], s[_Y]+1), prob_set[2]))   #down
-            poss.append(((s[_X], s[_Y]-1), prob_set[2]))   #up
+            poss.append(((s[_Y], s[_X]+1), prob_set[0]))   #right
+            poss.append(((s[_Y]-1, s[_X]+1), prob_set[1])) #up-right
+            poss.append(((s[_Y]+1, s[_X]+1), prob_set[1])) #down-right
+            poss.append(((s[_Y]+1, s[_X]), prob_set[2]))   #down
+            poss.append(((s[_Y]-1, s[_X]), prob_set[2]))   #up
         elif a == 'ne':
             # if s[_X] < self.cols - 1 and s[_Y] > 0:
             #     new_pos[_X] += 1
             #     new_pos[_Y] -= 1
-            poss.append(((s[_X]+1, s[_Y]-1), prob_set[0])) #up-right
-            poss.append(((s[_X], s[_Y]-1), prob_set[1]))   #up
-            poss.append(((s[_X]+1, s[_Y]), prob_set[1]))   #left
-            poss.append(((s[_X]-1, s[_Y]-1), prob_set[2])) #up-left
-            poss.append(((s[_X]+1, s[_Y]+1), prob_set[2])) #bottom-right
+            poss.append(((s[_Y]-1, s[_X]+1), prob_set[0])) #up-right
+            poss.append(((s[_Y]-1, s[_X]), prob_set[1]))   #up
+            poss.append(((s[_Y], s[_X]+1), prob_set[1]))   #left
+            poss.append(((s[_Y]-1, s[_X]-1), prob_set[2])) #up-left
+            poss.append(((s[_Y]+1, s[_X]+1), prob_set[2])) #bottom-right
         elif a == 'nw':
             # if s[_X] > 0 and s[_Y] > 0:
             #     new_pos[_X] -= 1
             #     new_pos[_Y] -= 1
-            poss.append(((s[_X]-1, s[_Y]-1), prob_set[0])) #up-left
-            poss.append(((s[_X], s[_Y]-1), prob_set[1]))   #up
-            poss.append(((s[_X]-1, s[_Y]), prob_set[1]))   #left
-            poss.append(((s[_X]+1, s[_Y]-1), prob_set[2])) #up-right
-            poss.append(((s[_X]-1, s[_Y]+1), prob_set[2])) #bottom-left
+            poss.append(((s[_Y]-1, s[_X]-1), prob_set[0])) #up-left
+            poss.append(((s[_Y]-1, s[_X]), prob_set[1]))   #up
+            poss.append(((s[_Y], s[_X]-1), prob_set[1]))   #left
+            poss.append(((s[_Y]-1, s[_X]+1), prob_set[2])) #up-right
+            poss.append(((s[_Y]+1, s[_X]-1), prob_set[2])) #bottom-left
         elif a == 'se':
             # if s[_X] < self.cols - 1 and s[_Y] < self.rows - 1:
             #     new_pos[_X] += 1
             #     new_pos[_Y] += 1
-            poss.append(((s[_X]+1, s[_Y]+1), prob_set[0])) #bottom-right
-            poss.append(((s[_X]+1, s[_Y]), prob_set[1]))   #right
-            poss.append(((s[_X], s[_Y]+1), prob_set[1]))   #bottom
-            poss.append(((s[_X]+1, s[_Y]-1), prob_set[2])) #upper-right
-            poss.append(((s[_X]-1, s[_Y]+1), prob_set[2])) #bottom-left
+            poss.append(((s[_Y]+1, s[_X]+1), prob_set[0])) #bottom-right
+            poss.append(((s[_Y], s[_X]+1), prob_set[1]))   #right
+            poss.append(((s[_Y]+1, s[_X]), prob_set[1]))   #bottom
+            poss.append(((s[_Y]-1, s[_X]+1), prob_set[2])) #upper-right
+            poss.append(((s[_Y]+1, s[_X]-1), prob_set[2])) #bottom-left
         elif a == 'sw':
             # if s[_X] > 0 and s[_Y] < self.rows - 1:
             #     new_pos[_X] -= 1
             #     new_pos[_Y] += 1
-            poss.append(((s[_X]-1, s[_Y]+1), prob_set[0])) #bottom-left
-            poss.append(((s[_X], s[_Y]+1), prob_set[1]))   #bottom
-            poss.append(((s[_X]-1, s[_Y]), prob_set[1]))   #left
-            poss.append(((s[_X]-1, s[_Y]-1), prob_set[2])) #upper-left
-            poss.append(((s[_X]+1, s[_Y]+1), prob_set[2])) #bottom-right
+            poss.append(((s[_Y]+1, s[_X]-1), prob_set[0])) #bottom-left
+            poss.append(((s[_Y]+1, s[_X]), prob_set[1]))   #bottom
+            poss.append(((s[_Y], s[_X]-1), prob_set[1]))   #left
+            poss.append(((s[_Y]-1, s[_X]-1), prob_set[2])) #upper-left
+            poss.append(((s[_Y]+1, s[_X]+1), prob_set[2])) #bottom-right
         else:
             print 'Unknown action:', str(a)
 
         # if we aren't simulating, just return 'poss'
-        if !sim:
+        if sim != True:
             return poss
         
         # otherwise we need to pick one
         new_pos = list(s[:])
-        rand = numpy.random.random_sample()
+        rand = np.random.random_sample()
         cur_val = 0
 
         for x in range(0, len(poss)):
             cur_val += poss[x][1] #add the probability of this one
-            if cur_val < rand:
-                new_pos[_X] = poss[x][0][0]
-                new_pos[_Y] = poss[X][0][1]
+            if rand < cur_val:
+                new_pos[_X] = poss[x][0][_X]
+                new_pos[_Y] = poss[x][0][_Y]
                 break
 
         # Test if new position is clear
-        if new_pos[_X] < 0 or new_pos[_X] >= self.cols or new_pos[_Y] < 0 or new_pos[_Y] >= self.rows
-                    self.is_goal(s) or self.occupancy_grid[new_pos[0], new_pos[1]]:
+        if new_pos[_X] < 0 or new_pos[_X] >= self.cols or new_pos[_Y] < 0 or new_pos[_Y] >= self.rows or self.is_goal(s) or self.occupancy_grid[new_pos[0], new_pos[1]]:
             s_prime = tuple(s)
         else:
             s_prime = tuple(new_pos)
@@ -243,7 +236,7 @@ class GridMap:
             display_grid[p] = disp_col
 
         display_grid[self.init_pos] = _INIT_COLOR
-        display_grid[self.goal] = _GOAL_COLOR
+        # display_grid[self.goal] = _GOAL_COLOR
 
         # Plot display grid for visualization
         imgplot = plotter.imshow(display_grid)
@@ -288,6 +281,7 @@ def bfs(init_state, f, is_goal, actions):
         traversed until the final goal state
     action_path - the actions taken to transition from the initial state to goal state
     '''
+
     frontier = [] #use as queue
     n0 = SearchNode(init_state, actions)
     visited = set()
@@ -300,7 +294,7 @@ def bfs(init_state, f, is_goal, actions):
                 return(backpath(n_i), visited)
             else:
                 for a in actions:
-                    s_prime = f(n_i.state, a)
+                    s_prime = f(n_i.state, a, _PERF_PROBS, True)
                     n_prime = SearchNode(s_prime, actions, n_i, a)
                     frontier.append(n_prime)
     
@@ -392,13 +386,10 @@ def main(argv):
         return
     
     actions = []
-    actions_cost = {}
     if argv[2] == 'actions_1':
         actions = _ACTIONS
-        actions_cost = _ACTION_COST
     elif argv[2] == 'actions_2':
         actions = _ACTIONS_2
-        actions_cost = _ACTION_2_COST
     else:
         print('Action \'' + argv[2] + '\' could not be interpreted. Should be actions_1 or actions_2')
         print('')
@@ -407,25 +398,11 @@ def main(argv):
     print('Creating map...')
     map = GridMap(argv[1])
     path = ([],{})
+    print('Starting position is: ' + str(map.init_pos[_X]) + ' ' + str(map.init_pos[_Y]))
 
-    if argv[3] == 'dfs':
-        print('Performing DFS...')
-        path = dfs(map.init_pos, map.transition, map.is_goal, actions)
-    elif argv[3] == 'iterative_deepening':
-        print('Performing iterative deepening...')
-        path = iterative_deepening(map.init_pos, map.transition, map.is_goal, actions, (map.rows + 1)*(map.cols + 1))
-    elif argv[3] == 'bfs':
+    if argv[3] == 'bfs':
         print('Performing BFS...')
         path = bfs(map.init_pos, map.transition, map.is_goal, actions)
-    elif argv[3] == 'uniform':
-        print('Performing uniform cost search...')
-        path = uniform_cost_search(map.init_pos, map.transition, map.is_goal, actions, actions_cost)
-    elif argv[3] == 'a_star':
-        print('Performing A* pathfinding with heuristic: ' + argv[4])
-        heuristic = get_heuristic(map, argv[4])
-        if heuristic == -1:
-            return 
-        path = a_star_search(map.init_pos, map.transition, map.is_goal, actions, actions_cost, heuristic)
     else:
         print('Algorithm: \'' + argv[3] + '\' is not recognized')
         print('')
