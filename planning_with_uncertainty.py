@@ -125,68 +125,48 @@ class GridMap:
         poss = []
 
         if a == 'u':
-            #if s[_Y] > 0:
-                #new_pos[_Y] -= 1
             poss.append(((s[_Y]-1, s[_X]), prob_set[0]))   #up
             poss.append(((s[_Y]-1, s[_X]-1), prob_set[1])) #up-left
             poss.append(((s[_Y]-1, s[_X]+1), prob_set[1])) #up-right
             poss.append(((s[_Y], s[_X]-1), prob_set[2]))   #left
             poss.append(((s[_Y], s[_X]+1), prob_set[2]))   #right
         elif a == 'd':
-            # if s[_Y] < self.rows - 1:
-            #     new_pos[_Y] += 1
             poss.append(((s[_Y]+1, s[_X]), prob_set[0]))   #down
             poss.append(((s[_Y]+1, s[_X]-1), prob_set[1])) #down-left
             poss.append(((s[_Y]+1, s[_X]+1), prob_set[1])) #down-right
             poss.append(((s[_Y], s[_X]-1), prob_set[2]))   #left
             poss.append(((s[_Y], s[_X]+1), prob_set[2]))   #right
         elif a == 'l':
-            # if s[_X] > 0:
-            #     new_pos[_X] -= 1
             poss.append(((s[_Y], s[_X]-1), prob_set[0]))   #left
             poss.append(((s[_Y]-1, s[_X]-1), prob_set[1])) #up-left
             poss.append(((s[_Y]+1, s[_X]-1), prob_set[1])) #down-left
             poss.append(((s[_Y]-1, s[_X]), prob_set[2]))   #up
             poss.append(((s[_Y]+1, s[_X]), prob_set[2]))   #down
         elif a == 'r':
-            # if s[_X] < self.cols - 1:
-            #     new_pos[_X] += 1
             poss.append(((s[_Y], s[_X]+1), prob_set[0]))   #right
             poss.append(((s[_Y]-1, s[_X]+1), prob_set[1])) #up-right
             poss.append(((s[_Y]+1, s[_X]+1), prob_set[1])) #down-right
             poss.append(((s[_Y]+1, s[_X]), prob_set[2]))   #down
             poss.append(((s[_Y]-1, s[_X]), prob_set[2]))   #up
         elif a == 'ne':
-            # if s[_X] < self.cols - 1 and s[_Y] > 0:
-            #     new_pos[_X] += 1
-            #     new_pos[_Y] -= 1
             poss.append(((s[_Y]-1, s[_X]+1), prob_set[0])) #up-right
             poss.append(((s[_Y]-1, s[_X]), prob_set[1]))   #up
             poss.append(((s[_Y], s[_X]+1), prob_set[1]))   #left
             poss.append(((s[_Y]-1, s[_X]-1), prob_set[2])) #up-left
             poss.append(((s[_Y]+1, s[_X]+1), prob_set[2])) #bottom-right
         elif a == 'nw':
-            # if s[_X] > 0 and s[_Y] > 0:
-            #     new_pos[_X] -= 1
-            #     new_pos[_Y] -= 1
             poss.append(((s[_Y]-1, s[_X]-1), prob_set[0])) #up-left
             poss.append(((s[_Y]-1, s[_X]), prob_set[1]))   #up
             poss.append(((s[_Y], s[_X]-1), prob_set[1]))   #left
             poss.append(((s[_Y]-1, s[_X]+1), prob_set[2])) #up-right
             poss.append(((s[_Y]+1, s[_X]-1), prob_set[2])) #bottom-left
         elif a == 'se':
-            # if s[_X] < self.cols - 1 and s[_Y] < self.rows - 1:
-            #     new_pos[_X] += 1
-            #     new_pos[_Y] += 1
             poss.append(((s[_Y]+1, s[_X]+1), prob_set[0])) #bottom-right
             poss.append(((s[_Y], s[_X]+1), prob_set[1]))   #right
             poss.append(((s[_Y]+1, s[_X]), prob_set[1]))   #bottom
             poss.append(((s[_Y]-1, s[_X]+1), prob_set[2])) #upper-right
             poss.append(((s[_Y]+1, s[_X]-1), prob_set[2])) #bottom-left
         elif a == 'sw':
-            # if s[_X] > 0 and s[_Y] < self.rows - 1:
-            #     new_pos[_X] -= 1
-            #     new_pos[_Y] += 1
             poss.append(((s[_Y]+1, s[_X]-1), prob_set[0])) #bottom-left
             poss.append(((s[_Y]+1, s[_X]), prob_set[1]))   #bottom
             poss.append(((s[_Y], s[_X]-1), prob_set[1]))   #left
@@ -326,6 +306,42 @@ def backpath(node):
 
     return (path, action_path)
 
+def backpath_stochastic(start, actions, probs, t):
+    '''
+    Function to determine the path that lead to the specified search node
+
+    start - starting state
+    actions - the list of actions taken
+    probs - which probability set to use
+    t - the transition function
+
+    returns - a tuple containing (path, action_path) which are lists respectively of the states
+    visited from init to goal (inclusive) and the actions taken to make those transitions.
+    '''
+    path = []
+    path.append(start)
+
+    state = start
+    for x in xrange(1, len(actions)):
+        a = actions[x]
+        state = t(state, a, probs, True)
+        path.append(state)
+
+    return (path, actions)
+
+def value_iteration(map, action_set, probs):
+    '''
+    Function that performs value iteration on a map
+
+    map - the map which value iteration is performed upon
+    action_set - which set of actions to use
+    probs - the probability set associated with a given action
+
+    returns - a grid containing tuples of the form: (value, action)
+    '''
+
+    return None
+
 def run_algorithm(path, action, algorithm, heuristic = 'uninformed'):
     '''
     Function to run a given algorithm using a specified action set. Automatically shows the results
@@ -415,6 +431,9 @@ def main(argv):
         return
     
     map.display_map(path[0][0], path[1])
+
+    path_stochastic = backpath_stochastic(map.init_pos, path[0][1], _PROBS, map.transition)
+    map.display_map(path_stochastic[0], path[1])
 
 if __name__ == "__main__":
     main(sys.argv)
