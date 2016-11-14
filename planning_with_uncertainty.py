@@ -329,17 +329,24 @@ def backpath_stochastic(start, actions, probs, t):
 
     return (path, actions)
 
-def value_iteration(map, action_set, probs):
+def value_iteration(map, discount, action_set, probs, base_value = 0, goal_value = 10, corner_value = 0, use_corners = False):
     '''
     Function that performs value iteration on a map
 
     map - the map which value iteration is performed upon
+    discount - the discount factor (lambda) to be used for value iteration
     action_set - which set of actions to use
     probs - the probability set associated with a given action
+    base_value - the base value to begin with for an average tile
+    goal_value - the base value of the goal tile to begin with
+    corner_value - the value of the corners to begin with
+    use_corners - bool which tells if we should use different value for corners than base_value
 
-    returns - a grid containing tuples of the form: (value, action)
+    returns - a grid containing tuples of the form: (value, action) as well as the
+        number of iterations required to converge
     '''
-
+    grid = np.zeros((map.rows, map.cols))
+    grid[map.goal[_Y]][map.goal[_X]] = 10
     return None
 
 def run_algorithm(path, action, algorithm, heuristic = 'uninformed'):
