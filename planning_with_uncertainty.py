@@ -449,10 +449,10 @@ def value_iteration(map, t, discount, action_set, probs, base_reward = 0, goal_r
                 for a in action_set:
                     cur_val = 0
                     a_set = t((y, x), a, probs, False)
+                    reward = reward_grid[y][x]
                     for s, prob in a_set:
                         s_x = s[_X]
                         s_y = s[_Y]
-                        reward = reward_grid[s_y][s_x]
                         value = value_grid[s_y][s_x][1]
                         cur_val += prob * (reward + (discount * value))
                     
@@ -485,6 +485,81 @@ def value_iteration(map, t, discount, action_set, probs, base_reward = 0, goal_r
 
     return (policy_grid, iter)
 
+def policy_iteration(map, t, action_grid, discount, action_set, probs, base_reward, goal_reward, corner_reward, use_corners = False):
+    reward_grid = [[base_reward for i in xrange(0, map.cols)] for i in xrange(0, map.rows)]
+    reward_grid[map.goal[_Y]][map.goal[_X]] = goal_reward
+    if use_corners:
+        reward_Grid[0][0] = corner_reward
+        reward_grid[0][map.cols-1] = corner_reward
+        reward_grid[map.rows-1][0] = corner_reward
+        reward_grid[map.rows-1][map.cols-1] = corner_reward
+
+    # get initial value grid based on actions
+    value_grid = [None] * map.rows
+    for y in xrange(len(value_grid)):
+        value_grid[y] = [0] * map.cols
+        for x in xrange(len(value_grid[y])):
+            r = reward_grid[y][x]
+            value_grid[y][x] = (r, r)
+
+    # do policy iteration
+    iter = 0
+    needs_iteration = True
+    while needs_iteration:
+        iter += 1
+        needs_iteration = False
+        for y in xrange(len(value_grid)):
+            for x in xrange(len(value_grid[y])):
+                #Compute value
+                cur_val = 0
+                a = action_grid[y][x]
+                a_set = t((y, x), a, probs, False)
+                reward = reward_grid[y][x]
+                for s, prob in a_set:
+                    s_x = s[_X]
+                    s_y = s[_Y]
+                    value = value_grid[s_y][s_x][1]
+                    cur_val += prob * (reward + (discount * value))
+
+                value_grid[y][x] = (cur_val, value_grid[y][x][1])
+
+        #change actions
+        for y in xrange(len(value_grid)):
+            for x in xrange(len(value_grid[y])):
+                max_val = -sys.maxint - 1
+                best_action = 'u'
+                for a in action_set:
+                    cur_val = 0
+                    a_set = t((y, x), a, probs, False)
+                    for s, prob in a_set:
+                        s_x = s[_X]
+                        s_y = s[_Y]
+                        val = value_grid[s_y][s_x][0]
+                        cur_val += prob * val
+                    
+                    if cur_val > max_val:
+                        max_val = cur_val
+                        best_action = a
+                
+                if best_action != action_grid[y][x]:
+                    needs_iteration = True
+                action_grid[y][x] = best_action
+
+        #update the value grid
+        update_grid(value_grid)
+
+    #Set up return grid
+    policy_grid = [None] * map.rows
+    for y in xrange(len(value_grid)):
+        policy_grid[y] = [None] * map.cols
+        for x in xrange(len(value_grid[y])):
+            val = value_grid[y][x][0]
+            action = action_grid[y][x]
+            policy_grid[y][x] = (val, action)
+
+    return (policy_grid, iter)
+    
+
 def update_grid(grid):
     '''
     Function that moves grid values from current to previous
@@ -498,6 +573,35 @@ def update_grid(grid):
             grid[y][x] = (grid[y][x][0], grid[y][x][0])
 
     return grid
+
+def make_grid_action(map, a):
+    ret = [None] * map.rows
+    for y in xrange(len(ret)):
+        ret[y] = [None] * map.cols
+        for x in xrange(len(ret[y])):
+            ret[y][x] = a
+
+    return ret
+
+def make_grid_action_random(map, action_set):
+    ret = [None] * map.rows
+    for y in xrange(len(ret)):
+        ret[y] = [None] * map.cols
+        for x in xrange(len(ret[y])):
+            #get random action
+            rand = np.random.random_sample()
+            d_r = 1.0 / len(action_set)
+            cur_prob = 0
+            ret_action = 'u'
+            for a in action_set:
+                cur_prob += d_r
+                if rand < cur_prob:
+                    ret_action = a
+                    break
+
+            ret[y][x] = ret_action
+    return ret
+                    
 
 def run_algorithm(path, action, algorithm, heuristic = 'uninformed'):
     '''
@@ -568,35 +672,41 @@ def main(argv):
         print('')
         help()
 
-    print('Creating map...')
+    print('Reading map...')
     map = GridMap(argv[1])
     path = ([],{})
-    print('Starting position is: ' + str(map.init_pos[_X]) + ' ' + str(map.init_pos[_Y]))
 
+    print('Performing ' + argv[3])
     if argv[3] == 'bfs':
         print('Performing BFS...')
         path = bfs(map.init_pos, map.transition, map.is_goal, actions)
+        if path == None:
+            print('No path could be found. Exiting')
+            return 
+
+        map.display_map(path[0][0], path[1])
+        path_stochastic = backpath_stochastic(map.init_pos, path[0][1], _PROBS, map.transition)
+        map.display_map(path_stochastic[0], path[1])
+
     elif argv[3] == 'value_iteration':
         v_map, iterations = value_iteration(map, map.transition, 0.8, actions, _PROBS, base_reward = 0.0, goal_reward = 10.0, corner_reward = 0, use_corners = False)
         print('Number of iterations: ' + str(iterations))
         map.display_values(v_map)
         map.display_states(v_map)
         return
+
+    elif argv[3] == 'policy_iteration':
+        v_map, iterations = policy_iteration(map, map.transition, make_grid_action_random(map, actions), 0.8, actions, _PROBS, base_reward = 0.0, goal_reward = 10.0, corner_reward = 0, use_corners = False)
+        print('Number of iterations: ' + str(iterations))
+        map.display_values(v_map)
+        map.display_states(v_map)
+        return
+
     else:
         print('Algorithm: \'' + argv[3] + '\' is not recognized')
         print('')
         help()
         return    
-
-    print('Printing results...')
-    if path == None:
-        print('No path could be found. Exiting')
-        return
-    
-    map.display_map(path[0][0], path[1])
-
-    path_stochastic = backpath_stochastic(map.init_pos, path[0][1], _PROBS, map.transition)
-    map.display_map(path_stochastic[0], path[1])
 
 if __name__ == "__main__":
     main(sys.argv)
