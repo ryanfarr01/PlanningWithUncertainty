@@ -429,15 +429,12 @@ def value_iteration(map, t, discount, action_set, probs, base_reward = 0, goal_r
         grireward_grid[map.rows-1][map.cols-1] = corner_reward
     
     # the value grid is the same as the reward grid initially
-    #print('map rows: ' + str(map.rows))
-    #print('map cols: ' + str(map.cols))
     value_grid = [None] * map.rows
     for y in xrange(len(value_grid)):
         value_grid[y] = [0] * map.cols
         for x in xrange(len(value_grid[y])):
             r = reward_grid[y][x]
             value_grid[y][x] = (r, r) #g[0] = current, g[1] = previous value
-    print('value_grid dimensions: ' + str(len(value_grid)) + 'x' + str(len(value_grid[0])))
 
     #Iterate to get value iteration
     needs_iteration = True
@@ -447,31 +444,16 @@ def value_iteration(map, t, discount, action_set, probs, base_reward = 0, goal_r
         needs_iteration = False
         for y in xrange(len(value_grid)):
             for x in xrange(len(value_grid[y])):
-                #print('')
-                #print('at x and y: ' + str(x) + ' ' + str(y))
-                #print('--------------------------')
                 #get max action value and set as value in grid
                 max_val = -sys.maxint - 1 #get minimum value
                 for a in action_set:
-                    #print('')
                     cur_val = 0
                     a_set = t((y, x), a, probs, False)
                     for s, prob in a_set:
-                        #print('prob: ' + str(prob))
-                        #print('reward: ' + str(reward_grid[s[0]][s[1]]))
-                        #print('discount: ' + str(discount))
-                        #print('s: ' + str(s[0]) + ' ' + str(s[1]))
-                        #print('value_grid: ' + str(len(value_grid)) + 'x' + str(len(value_grid[0])))
                         s_x = s[_X]
                         s_y = s[_Y]
                         reward = reward_grid[s_y][s_x]
                         value = value_grid[s_y][s_x][1]
-                        #print('Looking at point: (' + str(s_x) + ', ' + str(s_y))
-                        #print('value: ' + str(value))
-                        #print('reward:' + str(reward))
-                        #print('RHs: ' + str(discount*value))
-                        #print('Total (before multiply): ' + str(reward + (discount*value)))
-                        #print('Total: ' + str(prob*(reward+(discount*value))))
                         cur_val += prob * (reward + (discount * value))
                     
                     if cur_val > max_val:
@@ -481,6 +463,7 @@ def value_iteration(map, t, discount, action_set, probs, base_reward = 0, goal_r
                 if value_grid[y][x][0] != temp_val:
                     needs_iteration = True
         update_grid(value_grid)
+
     #Get the policy
     policy_grid = [None] * map.rows
     for y in xrange(len(policy_grid)):
