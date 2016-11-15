@@ -240,26 +240,32 @@ class GridMap:
         display_grid = np.array(self.occupancy_grid, dtype=np.float32)
         min_val = 10000000
         max_val = -10000000
-
         for y in xrange(len(map)):
             for x in xrange(len(map[y])):
-                plotter.text(x, y, map[y][x][1])
+                if self.is_goal((y, x)):
+                    plotter.text(x, y, 'G')
+                else:
+                    plotter.text(x, y, map[y][x][1])
                 if map[y][x][0] > max_val:
                     max_val = map[y][x][0]
                 if map[y][x][0] < min_val:
                     min_val = map[y][x][0]
+
         for y in xrange(len(map)):
             for x in xrange(len(map[y])):
                 if self.occupancy_grid[y][x]:
                     display_grid[(y, x)] = _BLACK
                 else:
-                    display_grid[(y, x)] = _INIT_COLOR + ((map[y][x][0] - min_val)/max_val)
+                    display_grid[(y,x)] = _INIT_COLOR + ((map[y][x][0] - min_val)/max_val)
+        display_grid[self.goal] = _GOAL_COLOR
 
-            display_grid[self.goal] = _GOAL_COLOR
-            imgplot = plotter.imshow(display_grid)
-            imgplot.set_interpolation('nearest')
-            imgplot.set_cmap('spectral')
-            plotter.show()
+        # Plot display grid for visualization
+        imgplot = plotter.imshow(display_grid)
+        # Set interpolation to nearest to create sharp boundaries
+        imgplot.set_interpolation('nearest')
+        # Set color map to diverging style for contrast
+        imgplot.set_cmap('spectral')
+        plotter.show()
 
     def display_values(self, map):
         '''
