@@ -237,6 +237,13 @@ class GridMap:
         plotter.show()
 
     def display_states(self, map):
+        '''
+        function that displays a map of the states given in a map
+
+        map - the map of states - should be of the form (value, state)
+
+        returns nothing
+        '''
         display_grid = np.array(self.occupancy_grid, dtype=np.float32)
         min_val = 10000000
         max_val = -10000000
@@ -256,7 +263,7 @@ class GridMap:
                 if self.occupancy_grid[y][x]:
                     display_grid[(y, x)] = _BLACK
                 else:
-                    display_grid[(y,x)] = _INIT_COLOR + ((map[y][x][0] - min_val)/max_val)
+                    display_grid[(y,x)] = _INIT_COLOR + ((map[y][x][0] - min_val)/(max_val-min_val))
         display_grid[self.goal] = _GOAL_COLOR
 
         # Plot display grid for visualization
@@ -269,9 +276,11 @@ class GridMap:
 
     def display_values(self, map):
         '''
-        Visualize the map read in. Optionally display the resulting plan and visisted nodes
+        Function that displays the map of values
 
-        path - a list of tuples describing the path take from init to goal
+        map - grid of the form (value, action)
+
+        returns nothing
         '''
         display_grid = np.array(self.occupancy_grid, dtype=np.float32)
 
@@ -279,7 +288,7 @@ class GridMap:
         max_val = -10000000
         for y in xrange(len(map)):
             for x in xrange(len(map[y])):
-                plotter.text(x, y, "%.2f" % map[y][x][0])
+                plotter.text(x, y, "%.1f" % map[y][x][0], horizontalalignment='center', verticalalignment='center')
                 if map[y][x][0] > max_val:
                     max_val = map[y][x][0]
                 if map[y][x][0] < min_val:
@@ -290,7 +299,7 @@ class GridMap:
                 if self.occupancy_grid[y][x]:
                     display_grid[(y, x)] = _BLACK
                 else:
-                    display_grid[(y,x)] = _INIT_COLOR + ((map[y][x][0] - min_val)/max_val)
+                    display_grid[(y,x)] = _INIT_COLOR + ((map[y][x][0] - min_val)/(max_val-min_val))
         display_grid[self.goal] = _GOAL_COLOR
 
         # Plot display grid for visualization
@@ -421,12 +430,13 @@ def value_iteration(map, t, discount, action_set, probs, base_reward = 0, goal_r
         number of iterations required to converge: (grid(value, action), iterations)
     '''
     reward_grid = [[base_reward for i in xrange(0, map.cols)] for i in xrange(0, map.rows)]
-    reward_grid[map.goal[_Y]][map.goal[_X]] = goal_reward
     if use_corners:
         reward_grid[0][0] = corner_reward
         reward_grid[0][map.cols-1] = corner_reward
-        grireward_grid[map.rows-1][0] = corner_reward
-        grireward_grid[map.rows-1][map.cols-1] = corner_reward
+        reward_grid[map.rows-1][0] = corner_reward
+        reward_grid[map.rows-1][map.cols-1] = corner_reward
+
+    reward_grid[map.goal[_Y]][map.goal[_X]] = goal_reward
     
     # the value grid is the same as the reward grid initially
     value_grid = [None] * map.rows
@@ -486,13 +496,30 @@ def value_iteration(map, t, discount, action_set, probs, base_reward = 0, goal_r
     return (policy_grid, iter)
 
 def policy_iteration(map, t, action_grid, discount, action_set, probs, base_reward, goal_reward, corner_reward, use_corners = False):
+    '''
+    function - performs policy iteration on a given map with initial actions 'action_grid'
+
+    map - the map to be used
+    t - the transition function
+    action_grid - the current grid
+    discount - the discount factor (lambda)
+    action_set - the set of actions to be used
+    probs - the set of probabilities to be used
+    base_reward - the reward for all tiles other than the goal
+    goal_reward - the reward to be used for the goal
+    corner_reward - cost to be used on corners
+    use_corners - whether or not you should use corners
+
+    returns - a map of tuples of the form (value, action) and the number of iterations
+        returns: (grid(value, action), iterations)
+    '''
     reward_grid = [[base_reward for i in xrange(0, map.cols)] for i in xrange(0, map.rows)]
-    reward_grid[map.goal[_Y]][map.goal[_X]] = goal_reward
     if use_corners:
-        reward_Grid[0][0] = corner_reward
+        reward_grid[0][0] = corner_reward
         reward_grid[0][map.cols-1] = corner_reward
         reward_grid[map.rows-1][0] = corner_reward
         reward_grid[map.rows-1][map.cols-1] = corner_reward
+    reward_grid[map.goal[_Y]][map.goal[_X]] = goal_reward
 
     # get initial value grid based on actions
     value_grid = [None] * map.rows
@@ -575,6 +602,14 @@ def update_grid(grid):
     return grid
 
 def make_grid_action(map, a):
+    '''
+    Function that creates a grid filled with action a
+    
+    map - the map to be used which stores its dimensions
+    a - which action to fill the grid with
+
+    returns - the grid
+    '''
     ret = [None] * map.rows
     for y in xrange(len(ret)):
         ret[y] = [None] * map.cols
@@ -584,6 +619,14 @@ def make_grid_action(map, a):
     return ret
 
 def make_grid_action_random(map, action_set):
+    '''
+    Function which creates a grid filled with random actions
+
+    map - the map to be used, which stores its dimensions
+    action_set - the set of actions to be chosen from
+    
+    returns - the grid
+    '''
     ret = [None] * map.rows
     for y in xrange(len(ret)):
         ret[y] = [None] * map.cols
@@ -658,9 +701,9 @@ def help():
     print('    graph_search.run_algorithm(\'Tests/map1.txt\', \'actions_1\', \'bfs\')')
     
 def main(argv):
-    if len(argv) != 4 and len(argv) != 5:
-        help()
-        return
+    #if len(argv) != 4 and len(argv) != 5:
+    #    help()
+    #    return
     
     actions = []
     if argv[2] == 'actions_1':
@@ -672,12 +715,20 @@ def main(argv):
         print('')
         help()
 
+    probs = _PROBS
+    if argv[3] == 'prob_1':
+        probs = _PROBS
+    elif argv[3] == 'prob_2':
+        probs = _PROBS_2
+
     print('Reading map...')
     map = GridMap(argv[1])
     path = ([],{})
 
-    print('Performing ' + argv[3])
-    if argv[3] == 'bfs':
+    print('Performing ' + argv[4] + '...')
+
+    #determine which algorithm to run
+    if argv[4] == 'bfs':
         print('Performing BFS...')
         path = bfs(map.init_pos, map.transition, map.is_goal, actions)
         if path == None:
@@ -685,25 +736,73 @@ def main(argv):
             return 
 
         map.display_map(path[0][0], path[1])
-        path_stochastic = backpath_stochastic(map.init_pos, path[0][1], _PROBS, map.transition)
+        path_stochastic = backpath_stochastic(map.init_pos, path[0][1], probs, map.transition)
         map.display_map(path_stochastic[0], path[1])
 
-    elif argv[3] == 'value_iteration':
-        v_map, iterations = value_iteration(map, map.transition, 0.8, actions, _PROBS, base_reward = 0.0, goal_reward = 10.0, corner_reward = 0, use_corners = False)
+    elif argv[4] == 'value_iteration':
+        if len(argv) < 8:
+            print('Not enough arguments given')
+            print('')
+            help()
+            return
+
+        discount = float(argv[5])
+        br = float(argv[6])
+        gr = float(argv[7])
+        cr = 0
+        uc = False
+        if len(argv) == 9:
+            cr = float(argv[8])
+            uc = True
+
+        v_map, iterations = value_iteration(map, map.transition, discount, actions, probs, br, gr, cr, uc)
         print('Number of iterations: ' + str(iterations))
         map.display_values(v_map)
         map.display_states(v_map)
         return
 
-    elif argv[3] == 'policy_iteration':
-        v_map, iterations = policy_iteration(map, map.transition, make_grid_action_random(map, actions), 0.8, actions, _PROBS, base_reward = 0.0, goal_reward = 10.0, corner_reward = 0, use_corners = False)
+    elif argv[4] == 'policy_iteration':
+        if len(argv) < 9:
+            print('Not enough arguments given')
+            print('')
+            help()
+            return
+
+        discount = float(argv[5])
+        br = float(argv[6])
+        gr = float(argv[7])
+        action = argv[8]
+        cr = 0
+        uc = False
+        if len(argv) == 10:
+            cr = float(argv[9])
+            uc = True
+
+        print('Discount: ' + str(discount))
+        print('Base Reward: ' + str(br))
+        print('Goal Reward: ' + str(gr))
+        print('Action: ' + action)
+        print('Using corner rewards: ' + str(uc) + ' with value of: ' + str(cr))
+        #check action
+        v_map = []
+        iterations = 0
+        if action == 'u' or action == 'd' or action == 'l' or action == 'r' or action == 'ne' or action == 'nw' or action == 'se' or action == 'sw':
+            v_map, iterations = policy_iteration(map, map.transition, make_grid_action(map, action), discount, actions, probs, br, gr, cr, uc)
+        elif action == 'r':
+            v_map, iterations = policy_iteration(map, map.transition, make_grid_action_random(map, actions), discount, actions, probs, br, gr, cr, uc)
+        else:
+            print('Invalid action given: ' + action)
+            print('')
+            help()
+            return
+            
         print('Number of iterations: ' + str(iterations))
         map.display_values(v_map)
         map.display_states(v_map)
         return
 
     else:
-        print('Algorithm: \'' + argv[3] + '\' is not recognized')
+        print('Algorithm: \'' + argv[4] + '\' is not recognized')
         print('')
         help()
         return    
