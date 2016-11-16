@@ -478,10 +478,10 @@ def value_iteration(map, t, discount, action_set, probs, base_reward = 0, goal_r
                 for a in action_set:
                     cur_val = 0
                     a_set = t((y, x), a, probs, False)
-                    reward = reward_grid[y][x]
                     for s, prob in a_set:
                         s_x = s[_X]
                         s_y = s[_Y]
+                        reward = reward_grid[s_y][s_x]
                         value = value_grid[s_y][s_x][1]
                         cur_val += prob * (reward + (discount * value))
                     
@@ -560,10 +560,10 @@ def policy_iteration(map, t, action_grid, discount, action_set, probs, base_rewa
                 cur_val = 0
                 a = action_grid[y][x]
                 a_set = t((y, x), a, probs, False)
-                reward = reward_grid[y][x]
                 for s, prob in a_set:
                     s_x = s[_X]
                     s_y = s[_Y]
+                    reward = reward_grid[s_y][s_x]
                     value = value_grid[s_y][s_x][1]
                     cur_val += prob * (reward + (discount * value))
 
