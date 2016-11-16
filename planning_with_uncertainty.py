@@ -1,31 +1,47 @@
 #!/usr/bin/env python
-'''
-Package providing helper classes and functions for performing graph search operations for planning.
 
+'''
 Author: Ryan Farr
-Date: 9/8/2016
-File: graph_search.py - file contains all data structures and functions necessary to run
-    depth-first search, iterative deepening, breadth-first search, uniform cost search,
-    and A* search. Can be used by directly passing arguments through the commandline or 
-    by using the run_algorithm function after importing graph_search into another python
-    file.
+Date: 11/15/2016
+File: planning_with_uncertainty.py - file contains all structures and algorithms to run and display
+    the results of breadth-first-search (both determininstic and stochastic), value iteration,
+    and policy iteration. Reads in .txt map files, which should always be the first parameter when
+    using the CLI or API
 
 Available action sets are:
     'actions_1' - this allows for up, down, left, and right
     'actions_2' - this allows for up, down, left, right, up left, up right, down left, and down right
 
-Available algorithms are:
-    'dfs'                 - Depth-First Search
-    'iterative_deepening' - Iterative Deepning Depth-First Search
-    'bfs'                 - Breadth-First Search
-    'uniform'             - Uniform Cost Search
-    'a_star'              - A* Search
+Available Probability sets are:
+    'prob_1' - 80% chance of going to target, 10% chance of going perpendicular in each direction
+    'prob_2' - 70% chance of going to target, 10% chance of going perpendicular, 5% chance of going between
+    'prob_3' - 60% chance of going to target, 20% chance of going perpendicular in each direction
 
-Available heuristics are:
-    'uninformed' - Always returns 0
-    'euclidian'  - Returns the Euclidian distance to the goal
-    'manhattan'  - Returns the Manhattan distance to the goal
-    'chebyshev'  - Returns the chebyshev distance to the goal
+Available algorithms are:
+    'bfs'                 - Breadth-First Search
+    'value_iteration'     - Value Iteration
+    'policy_iteration'    - Policy Iteration
+
+Available action strings are:
+    'u' - Initial map filled with the up action
+    'l' - Initial map filled with the left action
+    'r' - Initial map filled with the right action
+    'd' - Initial map filled with the down action
+    'ne' - Initial map filled with the up-right action
+    'nw' - Initial map filled with the up-left action
+    'se' - Initial map filled with the down-right action
+    'sw' - Initial map filled with the down-left action
+    'random' - Initial map filled with the random actions chosen from the chosen action set
+
+Examples using command-line:
+python planning_with_uncertainty.py Tests/map1.txt actions_2 prob_1 bfs
+python planning_with_uncertainty.py Tests/map0.txt actions_1 prob_2 value_iteration 0.8 0.0 10.0
+python planning_with_uncertainty.py Tests/map2.txt actions_2 prob_1 policy_iteration 0.8 0.0 10.0 random -10.0
+
+Examples using API:
+    planning_with_uncertainty.run_bfs('Tests/map1.txt', 'actions_2', 'prob_1')
+    planning_with_uncertainty.run_value_iteration('Tests/map0.txt', 'actions_1', 'prob_2', 0.8, 0.0, 10.0, False)
+    planning_with_uncertainty.run_policy_iteration('Tests/map1.txt', 'actions_2', 'prob_1', 0.8, 0.0, 10.0, random, -10.0, True)
 '''
 import sys
 import numpy as np
@@ -41,6 +57,7 @@ _ACTIONS_2     = ['u','d','l','r','ne','nw','sw','se']
 _PERF_PROBS    = [1.0, 0.0, 0.0] 
 _PROBS         = [0.8, 0.0, 0.1]
 _PROBS_2       = [0.7, 0.1, 0.05]
+_PROBS_3       = [0.6, 0.0, 0.2]
 _X = 1
 _Y = 0
 _GOAL_COLOR    = 0.75
@@ -644,67 +661,159 @@ def make_grid_action_random(map, action_set):
 
             ret[y][x] = ret_action
     return ret
-                    
 
-def run_algorithm(path, action, algorithm, heuristic = 'uninformed'):
+def run_bfs(path, actions, prob_set):
     '''
-    Function to run a given algorithm using a specified action set. Automatically shows the results
-        Available action sets are:
-            'actions_1' - this allows for up, down, left, and right
-            'actions_2' - this allows for up, down, left, right, up left, up right, down left, and down right
-        
-        Available algorithms are:
-            'dfs'                 - Depth-First Search
-            'iterative_deepening' - Iterative Deepning Depth-First Search
-            'bfs'                 - Breadth-First Search
-            'uniform'             - Uniform Cost Search
-            'a_star'              - A* Search
+    Function that runs BFS. Displays the path using a deterministic robot
+        as well as a stochastic robot
 
-        Available heuristics are:
-            'uninformed' - Always returns 0
-            'euclidian'  - Returns the Euclidian distance to the goal
-            'manhattan'  - Returns the Manhattan distance to the goal
-            'chebyshev'  - Returns the chebyshev distance to the goal
+    path - path to the map file
+    actions - which action set to use (defined below)
+    prob_set - which probability set to use (defined below)
 
-        Example for depth-first search on map 0:
-            run_algorithm('Tests/map0.txt', 'actions_1', 'dfs') 
+     Available action sets are:
+        'actions_1' - this allows for up, down, left, and right
+        'actions_2' - this allows for up, down, left, right, up left, up right, down left, and down right
 
-        Example for A* search on map 2 using Manhattan distance as the heuristic:
-            run_algorithm('tests/map2.txt', 'actions_2', 'a_star', 'manhattan')
+    Available Probability sets are:
+        'prob_1' - 80% chance of going to target, 10% chance of going perpendicular
+        'prob_2' - 70% chance of going to target, 10% chance of going perpendicular, 5% chance of going between
     '''
-    input = [None] * 5
+    input = [None] * 4
     input[0] = None
     input[1] = path
-    input[2] = action
-    input[3] = algorithm
-    input[4] = heuristic
+    input[2] = actions
+    input[3] = prob_set
+    main(input)
+
+def run_value_iteration(path, actions, prob_set, discount, base_reward, goal_reward, corner_reward = 0, use_corner = False):       
+    '''
+    Function that runs value iteration. Displays the map of values as well as a second map of actions
+
+    path - path to the map file
+    actions - which action set to use (defined below)
+    prob_set - which probability set to use (defined below)
+    discount - the discount factor (lambda)
+    base_reward - the reward used on normal tiles
+    goal_reward - the reward used on the goal tile
+    corner_reward (optional) - the reward to be used on corners. Defaults to base_reward
+    use_corner (optional) - whether or not to use the corner reward for corners. Default false
+
+     Available action sets are:
+        'actions_1' - this allows for up, down, left, and right
+        'actions_2' - this allows for up, down, left, right, up left, up right, down left, and down right
+
+    Available Probability sets are:
+        'prob_1' - 80% chance of going to target, 10% chance of going perpendicular
+        'prob_2' - 70% chance of going to target, 10% chance of going perpendicular, 5% chance of going between
+    '''    
+    input = []
+    if use_corner:
+        input = [None] * 8
+        input[7] = str(corner_reward)
+    else:
+        input = [None] * 7
+    input[0] = None
+    input[1] = str(path)
+    input[2] = str(actions)
+    input[3] = str(prob_set)
+    input[4] = str(discount)
+    input[5] = str(base_reward)
+    input[6] = str(goal_reward)
+    main(input)
+
+def run_policy_iteration(path, actions, prob_set, discount, base_reward, goal_reward, action, corner_reward = 0, use_corner = False):    
+    '''
+    Function that runs policy iteration. Displays the map of values as well as a second map of actions
+
+    path - path to the map file
+    actions - which action set to use (defined below)
+    prob_set - which probability set to use (defined below)
+    discount - the discount factor (lambda)
+    base_reward - the reward used on normal tiles
+    goal_reward - the reward used on the goal tile
+    action - which (string) action to default to for the initial policy (defined below)
+    corner_reward (optional) - the reward to be used on corners. Defaults to base_reward
+    use_corner (optional) - whether or not to use the corner reward for corners. Default false
+
+     Available action sets are:
+        'actions_1' - this allows for up, down, left, and right
+        'actions_2' - this allows for up, down, left, right, up left, up right, down left, and down right
+
+    Available Probability sets are:
+        'prob_1' - 80% chance of going to target, 10% chance of going perpendicular
+        'prob_2' - 70% chance of going to target, 10% chance of going perpendicular, 5% chance of going between
+
+    Available action strings are:
+        'u' - Initial map filled with the up action
+        'l' - Initial map filled with the left action
+        'r' - Initial map filled with the right action
+        'd' - Initial map filled with the down action
+        'ne' - Initial map filled with the up-right action
+        'nw' - Initial map filled with the up-left action
+        'se' - Initial map filled with the down-right action
+        'sw' - Initial map filled with the down-left action
+        'random' - Initial map filled with the random actions chosen from the chosen action set
+    '''           
+    input = []
+    if use_corner:
+        input = [None] * 9
+        input[8] = str(corner_reward)
+    else:
+        input = [None] * 8
+    input[0] = None
+    input[1] = str(path)
+    input[2] = str(actions)
+    input[3] = str(prob_set)
+    input[4] = str(discount)
+    input[5] = str(base_reward)
+    input[6] = str(goal_reward)
+    input[7] = str(action)
     main(input)
 
 def help():
-    print('Must pass three or four arguments arguments: [file path] [actions] [algorithm] [optional: heuristic]')
+    print('Must pass a minimum of 4 parameters: [file path] [actions] [probability_set] [algorithm] [algorithm parameters*]')
     print('    *[file path] - The path to the file representing the map')
     print('    *[actions] - Which action set to be used. Available action sets:')
     print('        *actions_1 - up, down, left, right')
     print('        *actions_2 - up, down, left, right, up-left, up-right, down-left, down-right')
-    print('    *[algorithm] - Which algorithm is to be used. This can be: dfs, iterative_deepening, bfs, uniform, or a_star')
-    print('        If a_star is used, pass a third argument for the heurisitc to be used. Available heuristics:')
-    print('            *uninformed - always returns 0')
-    print('            *euclidian - returns the euclidian distance between the given point and the goal')
-    print('            *manhattan - returns the manhattan distance between the given point and the goal')
-    print('            *chebyshev - returns the chebyshev distance between the given point and the goal')
+    print('    *[probability_set] - which set of probabilities to use')
+    print('        *prob_1 - 80% towards target, 10% perpendicular in each direction')
+    print('        *prob_2 - 70% towards target, 10% perpendicular in each direction, 5% between toward and perpendicular')
+    print('        *prob_3 - 60% towards target, 20% perpendicular in each direction')
+    print('    *[algorithm] - Which algorithm is to be used. This can be: bfs, policy_iteration, value_iteration')
+    print('            *bfs - breadth first search. Shows resulting map with deterministic robot, then resulting path with stochastic robot')
+    print('            *value_iteration - performs value iteration. Prints final map of values and another map of actions')
+    print('            *policy_iteration - performs policy iteration. Prints final map of values and another map of actions')
+    print('    *[algorithm parameters*] - Whatever other parameters are need for the algorithm. Only applies to value_iteration and policy_iteration')
+    print('    *For value iteration: [algorithm parameters] = [discount] [base reward] [goal reward] [corner reward (optional)]')
+    print('    *For policy iteration: [algorithm parameters] = [discount] [base reward] [goal reward] [action] [corner reward (optional)]')
+    print('            *discount - the discount factor (lambda)')
+    print('            *base reward - the base reward to be used for normal tiles')
+    print('            *goal reward - the goal\'s reward')
+    print('            *corner reward - optional parameter to be used as the reward for corners. Use nothing if you just want this = base reward')
+    print('            *actions - which set of actions to fill the initial policy grid with. Options are:')
+    print('                 u - fill grid with up action')
+    print('                 d - fill grid with down action')
+    print('                 l - fill grid with left action')
+    print('                 r - fill grid with right action')
+    print('                 ne - fill grid with up-right action')
+    print('                 nw - fill grid with up-left action')
+    print('                 se - fill grid with down-right action')
+    print('                 sw - fill grid with down-left action')
+    print('                 random - fill grid with random actions from the given action set')    
     print('')
-    print('Example:')
-    print('    python graph_search.py Tests/map1.txt actions_2 a_star euclidian')
-    print('    python graph_search.py Tests/map2.txt actions_1 dfs')
+    print('Examples using command-line:')
+    print('    python planning_with_uncertainty.py Tests/map1.txt actions_2 prob_1 bfs')
+    print('    python planning_with_uncertainty.py Tests/map0.txt actions_1 prob_2 value_iteration 0.8 0.0 10.0')
+    print('    python planning_with_uncertainty.py Tests/map2.txt actions_2 prob_1 policy_iteration 0.8 0.0 10.0 random -10.0')
     print('')
-    print('Example using API:')
-    print('    graph_search.run_algorithm(\'Tests/map1.txt\', \'actions_1\', \'bfs\')')
+    print('Examples using API:')
+    print('    planning_with_uncertainty.run_bfs(\'Tests/map1.txt\', \'actions_2\', \'prob_1\')
+    print('    planning_with_uncertainty.run_value_iteration(\'Tests/map0.txt\', \'actions_1\', \'prob_2\', 0.8, 0.0, 10.0, False')
+    print('    planning_with_uncertainty.run_policy_iteration(\'Tests/map1.txt\', \'actions_2\', \'prob_1\', 0.8, 0.0, 10.0, random, -10.0, True')
     
 def main(argv):
-    #if len(argv) != 4 and len(argv) != 5:
-    #    help()
-    #    return
-    
     actions = []
     if argv[2] == 'actions_1':
         actions = _ACTIONS
@@ -720,6 +829,12 @@ def main(argv):
         probs = _PROBS
     elif argv[3] == 'prob_2':
         probs = _PROBS_2
+    elif argv[3] == 'prob_3':
+        probs = _PROBS_3
+    else:
+        print('Could not interpret prob. set: ' + str(argv[3]))
+        print('')
+        help()
 
     print('Reading map...')
     map = GridMap(argv[1])
@@ -755,6 +870,12 @@ def main(argv):
             cr = float(argv[8])
             uc = True
 
+        print('Discount: ' + str(discount))
+        print('Base Reward: ' + str(br))
+        print('Goal Reward: ' + str(gr))
+        print('Action: ' + action)
+        print('Using corner rewards: ' + str(uc) + ' with value of: ' + str(cr))
+
         v_map, iterations = value_iteration(map, map.transition, discount, actions, probs, br, gr, cr, uc)
         print('Number of iterations: ' + str(iterations))
         map.display_values(v_map)
@@ -788,7 +909,7 @@ def main(argv):
         iterations = 0
         if action == 'u' or action == 'd' or action == 'l' or action == 'r' or action == 'ne' or action == 'nw' or action == 'se' or action == 'sw':
             v_map, iterations = policy_iteration(map, map.transition, make_grid_action(map, action), discount, actions, probs, br, gr, cr, uc)
-        elif action == 'r':
+        elif action == 'random':
             v_map, iterations = policy_iteration(map, map.transition, make_grid_action_random(map, actions), discount, actions, probs, br, gr, cr, uc)
         else:
             print('Invalid action given: ' + action)
