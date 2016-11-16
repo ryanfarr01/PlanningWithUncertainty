@@ -823,6 +823,7 @@ def main(argv):
         print('Action \'' + argv[2] + '\' could not be interpreted. Should be actions_1 or actions_2')
         print('')
         help()
+        return
 
     probs = _PROBS
     if argv[3] == 'prob_1':
@@ -835,6 +836,7 @@ def main(argv):
         print('Could not interpret prob. set: ' + str(argv[3]))
         print('')
         help()
+        return
 
     print('Reading map...')
     map = GridMap(argv[1])
