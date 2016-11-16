@@ -891,7 +891,6 @@ def main(argv):
         print('Discount: ' + str(discount))
         print('Base Reward: ' + str(br))
         print('Goal Reward: ' + str(gr))
-        print('Action: ' + action)
         print('Using corner rewards: ' + str(uc) + ' with value of: ' + str(cr))
 
         v_map, iterations = value_iteration(map, map.transition, discount, actions, probs, br, gr, cr, uc)
