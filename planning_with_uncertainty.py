@@ -815,6 +815,13 @@ def help():
     
 def main(argv):
     actions = []
+
+    if len(argv) < 5:
+        print('Too few arguments passed')
+        print('')
+        help()
+        return
+
     if argv[2] == 'actions_1':
         actions = _ACTIONS
     elif argv[2] == 'actions_2':
