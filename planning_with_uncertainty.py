@@ -448,6 +448,7 @@ def value_iteration(map, t, discount, action_set, probs, base_reward = 0, goal_r
     returns - a grid containing tuples of the form: (value, action) as well as the
         number of iterations required to converge: (grid(value, action), iterations)
     '''
+    epsilon = 0.001
     reward_grid = [[base_reward for i in xrange(0, map.cols)] for i in xrange(0, map.rows)]
     if use_corners:
         reward_grid[0][0] = corner_reward
@@ -473,6 +474,8 @@ def value_iteration(map, t, discount, action_set, probs, base_reward = 0, goal_r
         needs_iteration = False
         for y in xrange(len(value_grid)):
             for x in xrange(len(value_grid[y])):
+                if map.is_goal((y, x)):
+                    continue
                 #get max action value and set as value in grid
                 max_val = -sys.maxint - 1 #get minimum value
                 for a in action_set:
@@ -489,7 +492,8 @@ def value_iteration(map, t, discount, action_set, probs, base_reward = 0, goal_r
                         max_val = cur_val
                 temp_val = value_grid[y][x][0]
                 value_grid[y][x] = (max_val, value_grid[y][x][1])
-                if value_grid[y][x][0] != temp_val:
+                
+                if abs(value_grid[y][x][0] - temp_val) > epsilon:
                     needs_iteration = True
         update_grid(value_grid)
 
@@ -536,6 +540,7 @@ def policy_iteration(map, t, action_grid, discount, action_set, probs, base_rewa
     returns - a map of tuples of the form (value, action) and the number of iterations
         returns: (grid(value, action), iterations)
     '''
+    epsilon = 0.001
     reward_grid = [[base_reward for i in xrange(0, map.cols)] for i in xrange(0, map.rows)]
     if use_corners:
         reward_grid[0][0] = corner_reward
@@ -563,6 +568,8 @@ def policy_iteration(map, t, action_grid, discount, action_set, probs, base_rewa
             needs_iter_value = False
             for y in xrange(len(value_grid)):
                 for x in xrange(len(value_grid[y])):
+                    if map.is_goal((y, x)):
+                        continue
                     #Compute value
                     cur_val = 0
                     a = action_grid[y][x]
@@ -574,7 +581,7 @@ def policy_iteration(map, t, action_grid, discount, action_set, probs, base_rewa
                         value = value_grid[s_y][s_x][1]
                         cur_val += prob * (reward + (discount * value))
 
-                    if cur_val != value_grid[y][x][1]:
+                    if abs(cur_val - value_grid[y][x][1]) > epsilon:
                         needs_iter_value = True
                     value_grid[y][x] = (cur_val, value_grid[y][x][1])
                 
