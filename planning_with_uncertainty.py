@@ -505,7 +505,11 @@ def value_iteration(map, t, discount, action_set, probs, base_reward = 0, goal_r
                 cur_val = 0
                 a_set = t((y, x), a, probs, False)
                 for s, prob in a_set:
-                    cur_val += prob * value_grid[s[0]][s[1]][0]
+                    s_x = s[_X]
+                    s_y = s[_Y]
+                    reward = reward_grid[s_y][s_x]
+                    value = value_grid[s_y][s_x][0]
+                    cur_val += prob * (reward + (discount * value))
                 
                 if cur_val > max_val:
                     max_val = cur_val
