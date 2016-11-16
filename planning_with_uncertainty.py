@@ -16,6 +16,7 @@ Available Probability sets are:
     'prob_1' - 80% chance of going to target, 10% chance of going perpendicular in each direction
     'prob_2' - 70% chance of going to target, 10% chance of going perpendicular, 5% chance of going between
     'prob_3' - 60% chance of going to target, 20% chance of going perpendicular in each direction
+    'prob_4' - 80% chance of going to target, 10% chance of going in between it and perpendiculars
 
 Available algorithms are:
     'bfs'                 - Breadth-First Search
@@ -58,6 +59,7 @@ _PERF_PROBS    = [1.0, 0.0, 0.0]
 _PROBS         = [0.8, 0.0, 0.1]
 _PROBS_2       = [0.7, 0.1, 0.05]
 _PROBS_3       = [0.6, 0.0, 0.2]
+_PROBS_4       = [0.8, 0.1, 0.0]
 _X = 1
 _Y = 0
 _GOAL_COLOR    = 0.75
@@ -706,6 +708,8 @@ def run_value_iteration(path, actions, prob_set, discount, base_reward, goal_rew
     Available Probability sets are:
         'prob_1' - 80% chance of going to target, 10% chance of going perpendicular
         'prob_2' - 70% chance of going to target, 10% chance of going perpendicular, 5% chance of going between
+        'prob_3' - 60% chance of going to target, 20% chance of going perpendicular in each direction
+        'prob_4' - 80% chance of going to target, 10% chance of going in between it and perpendiculars
     '''    
     input = []
     if use_corner:
@@ -743,6 +747,8 @@ def run_policy_iteration(path, actions, prob_set, discount, base_reward, goal_re
     Available Probability sets are:
         'prob_1' - 80% chance of going to target, 10% chance of going perpendicular
         'prob_2' - 70% chance of going to target, 10% chance of going perpendicular, 5% chance of going between
+        'prob_3' - 60% chance of going to target, 20% chance of going perpendicular in each direction
+        'prob_4' - 80% chance of going to target, 10% chance of going in between it and perpendiculars
 
     Available action strings are:
         'u' - Initial map filled with the up action
@@ -781,6 +787,7 @@ def help():
     print('        *prob_1 - 80% towards target, 10% perpendicular in each direction')
     print('        *prob_2 - 70% towards target, 10% perpendicular in each direction, 5% between toward and perpendicular')
     print('        *prob_3 - 60% towards target, 20% perpendicular in each direction')
+    print('        *prob_4 - 80% chance of going to target, 10% chance of going in between it and perpendiculars')
     print('    *[algorithm] - Which algorithm is to be used. This can be: bfs, policy_iteration, value_iteration')
     print('            *bfs - breadth first search. Shows resulting map with deterministic robot, then resulting path with stochastic robot')
     print('            *value_iteration - performs value iteration. Prints final map of values and another map of actions')
@@ -839,6 +846,8 @@ def main(argv):
         probs = _PROBS_2
     elif argv[3] == 'prob_3':
         probs = _PROBS_3
+    elif argv[3] == 'prob_4':
+        probs = _PROBS_4
     else:
         print('Could not interpret prob. set: ' + str(argv[3]))
         print('')
