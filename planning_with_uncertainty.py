@@ -809,7 +809,7 @@ def help():
     print('    python planning_with_uncertainty.py Tests/map2.txt actions_2 prob_1 policy_iteration 0.8 0.0 10.0 random -10.0')
     print('')
     print('Examples using API:')
-    print('    planning_with_uncertainty.run_bfs(\'Tests/map1.txt\', \'actions_2\', \'prob_1\')
+    print('    planning_with_uncertainty.run_bfs(\'Tests/map1.txt\', \'actions_2\', \'prob_1\')')
     print('    planning_with_uncertainty.run_value_iteration(\'Tests/map0.txt\', \'actions_1\', \'prob_2\', 0.8, 0.0, 10.0, False')
     print('    planning_with_uncertainty.run_policy_iteration(\'Tests/map1.txt\', \'actions_2\', \'prob_1\', 0.8, 0.0, 10.0, random, -10.0, True')
     
