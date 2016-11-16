@@ -580,8 +580,9 @@ def policy_iteration(map, t, action_grid, discount, action_set, probs, base_rewa
                     for s, prob in a_set:
                         s_x = s[_X]
                         s_y = s[_Y]
+                        reward = reward_grid[s_y][s_x]
                         val = value_grid[s_y][s_x][0]
-                        cur_val += prob * val
+                        cur_val += prob * (reward (discount * val))
                     
                     if cur_val > max_val:
                         max_val = cur_val
