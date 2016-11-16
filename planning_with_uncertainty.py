@@ -554,20 +554,27 @@ def policy_iteration(map, t, action_grid, discount, action_set, probs, base_rewa
     while needs_iteration:
         iter += 1
         needs_iteration = False
-        for y in xrange(len(value_grid)):
-            for x in xrange(len(value_grid[y])):
-                #Compute value
-                cur_val = 0
-                a = action_grid[y][x]
-                a_set = t((y, x), a, probs, False)
-                for s, prob in a_set:
-                    s_x = s[_X]
-                    s_y = s[_Y]
-                    reward = reward_grid[s_y][s_x]
-                    value = value_grid[s_y][s_x][1]
-                    cur_val += prob * (reward + (discount * value))
+        needs_iter_value = True
+        while needs_iter_value:
+            needs_iter_value = False
+            for y in xrange(len(value_grid)):
+                for x in xrange(len(value_grid[y])):
+                    #Compute value
+                    cur_val = 0
+                    a = action_grid[y][x]
+                    a_set = t((y, x), a, probs, False)
+                    for s, prob in a_set:
+                        s_x = s[_X]
+                        s_y = s[_Y]
+                        reward = reward_grid[s_y][s_x]
+                        value = value_grid[s_y][s_x][1]
+                        cur_val += prob * (reward + (discount * value))
 
-                value_grid[y][x] = (cur_val, value_grid[y][x][1])
+                    if cur_val != value_grid[y][x][1]:
+                        needs_iter_value = True
+                    value_grid[y][x] = (cur_val, value_grid[y][x][1])
+                
+            update_grid(value_grid)
 
         #change actions
         for y in xrange(len(value_grid)):
@@ -580,8 +587,8 @@ def policy_iteration(map, t, action_grid, discount, action_set, probs, base_rewa
                     for s, prob in a_set:
                         s_x = s[_X]
                         s_y = s[_Y]
-                        reward = reward_grid[s_y][s_x]
                         val = value_grid[s_y][s_x][0]
+                        reward = reward_grid[s_y][s_x]
                         cur_val += prob * (reward + (discount * val))
                     
                     if cur_val > max_val:
@@ -591,9 +598,6 @@ def policy_iteration(map, t, action_grid, discount, action_set, probs, base_rewa
                 if best_action != action_grid[y][x]:
                     needs_iteration = True
                 action_grid[y][x] = best_action
-
-        #update the value grid
-        update_grid(value_grid)
 
     #Set up return grid
     policy_grid = [None] * map.rows
