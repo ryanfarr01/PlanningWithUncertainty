@@ -681,11 +681,12 @@ def run_bfs(path, actions, prob_set):
         'prob_1' - 80% chance of going to target, 10% chance of going perpendicular
         'prob_2' - 70% chance of going to target, 10% chance of going perpendicular, 5% chance of going between
     '''
-    input = [None] * 4
+    input = [None] * 5
     input[0] = None
     input[1] = path
     input[2] = actions
     input[3] = prob_set
+    input[4] = 'bfs'
     main(input)
 
 def run_value_iteration(path, actions, prob_set, discount, base_reward, goal_reward, corner_reward = 0, use_corner = False):       
@@ -713,17 +714,18 @@ def run_value_iteration(path, actions, prob_set, discount, base_reward, goal_rew
     '''    
     input = []
     if use_corner:
-        input = [None] * 8
-        input[7] = str(corner_reward)
+        input = [None] * 9
+        input[8] = str(corner_reward)
     else:
-        input = [None] * 7
+        input = [None] * 8
     input[0] = None
     input[1] = str(path)
     input[2] = str(actions)
     input[3] = str(prob_set)
-    input[4] = str(discount)
-    input[5] = str(base_reward)
-    input[6] = str(goal_reward)
+    input[4] = 'value_iteration'
+    input[5] = str(discount)
+    input[6] = str(base_reward)
+    input[7] = str(goal_reward)
     main(input)
 
 def run_policy_iteration(path, actions, prob_set, discount, base_reward, goal_reward, action, corner_reward = 0, use_corner = False):    
@@ -763,18 +765,19 @@ def run_policy_iteration(path, actions, prob_set, discount, base_reward, goal_re
     '''           
     input = []
     if use_corner:
-        input = [None] * 9
-        input[8] = str(corner_reward)
+        input = [None] * 10
+        input[9] = str(corner_reward)
     else:
-        input = [None] * 8
+        input = [None] * 9
     input[0] = None
     input[1] = str(path)
     input[2] = str(actions)
     input[3] = str(prob_set)
-    input[4] = str(discount)
-    input[5] = str(base_reward)
-    input[6] = str(goal_reward)
-    input[7] = str(action)
+    input[4] = 'policy_iteration'
+    input[5] = str(discount)
+    input[6] = str(base_reward)
+    input[7] = str(goal_reward)
+    input[8] = str(action)
     main(input)
 
 def help():
@@ -816,9 +819,9 @@ def help():
     print('    python planning_with_uncertainty.py Tests/map2.txt actions_2 prob_1 policy_iteration 0.8 0.0 10.0 random -10.0')
     print('')
     print('Examples using API:')
-    print('    planning_with_uncertainty.run_bfs(\'Tests/map1.txt\', \'actions_2\', \'prob_1\')')
-    print('    planning_with_uncertainty.run_value_iteration(\'Tests/map0.txt\', \'actions_1\', \'prob_2\', 0.8, 0.0, 10.0, False')
-    print('    planning_with_uncertainty.run_policy_iteration(\'Tests/map1.txt\', \'actions_2\', \'prob_1\', 0.8, 0.0, 10.0, random, -10.0, True')
+    print('    planning_with_uncertainty.run_bfs(\'./Tests/map1.txt\', \'actions_2\', \'prob_1\')')
+    print('    planning_with_uncertainty.run_value_iteration(\'./Tests/map0.txt\', \'actions_1\', \'prob_2\', 0.8, 0.0, 10.0, False)')
+    print('    planning_with_uncertainty.run_policy_iteration(\'./Tests/map1.txt\', \'actions_2\', \'prob_1\', 0.8, 0.0, 10.0, random, -10.0, True)')
     
 def main(argv):
     actions = []
