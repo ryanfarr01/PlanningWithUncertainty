@@ -549,22 +549,25 @@ def policy_iteration(map, t, action_grid, discount, action_set, probs, base_rewa
         reward_grid[map.rows-1][map.cols-1] = corner_reward
     reward_grid[map.goal[_Y]][map.goal[_X]] = goal_reward
 
-    # get initial value grid based on actions
-    value_grid = [None] * map.rows
-    for y in xrange(len(value_grid)):
-        value_grid[y] = [0] * map.cols
-        for x in xrange(len(value_grid[y])):
-            r = reward_grid[y][x]
-            value_grid[y][x] = (r, r)
-
     # do policy iteration
     iter = 0
+    total_iter = 0
     needs_iteration = True
     while needs_iteration:
+        # get initial value grid based on actions
+        value_grid = [None] * map.rows
+        for y in xrange(len(value_grid)):
+            value_grid[y] = [0] * map.cols
+            for x in xrange(len(value_grid[y])):
+                r = reward_grid[y][x]
+                value_grid[y][x] = (r, r)
+
+        #Calculate value until converges
         iter += 1
         needs_iteration = False
         needs_iter_value = True
         while needs_iter_value:
+            total_iter += 1
             needs_iter_value = False
             for y in xrange(len(value_grid)):
                 for x in xrange(len(value_grid[y])):
@@ -619,6 +622,7 @@ def policy_iteration(map, t, action_grid, discount, action_set, probs, base_rewa
             action = action_grid[y][x]
             policy_grid[y][x] = (val, action)
 
+    print('Total number of iterations: ' + total_iter)
     return (policy_grid, iter)
     
 
