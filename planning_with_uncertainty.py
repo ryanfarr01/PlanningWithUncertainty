@@ -622,7 +622,7 @@ def policy_iteration(map, t, action_grid, discount, action_set, probs, base_rewa
             action = action_grid[y][x]
             policy_grid[y][x] = (val, action)
 
-    print('Total number of iterations: ' + total_iter)
+    print('Total number of iterations: ' + str(total_iter))
     return (policy_grid, iter)
     
 
